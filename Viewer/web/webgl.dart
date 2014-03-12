@@ -15,9 +15,13 @@ class Canvas{
   UniformLocation uPMatrix;
   UniformLocation uMVMatrix;
   int aVertexPosition;
+  int vColor;
   double test = 0.0;
   
   Program shaderProgram;
+  
+  Buffer color_buffer;
+  Buffer vertexBuffer;
   
   LDrawFile file;
   
@@ -33,10 +37,10 @@ class Canvas{
     }
 
     //Vertex Array Object?
-    Buffer vertexBuffer = gl.createBuffer();
+    vertexBuffer = gl.createBuffer();
     gl.bindBuffer( ARRAY_BUFFER, vertexBuffer );
     
-    gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
+    gl.clearColor( 0.0, 0.0, 0.0, 0.0 );
     //TODO: check if transparency works
     gl.enable( DEPTH_TEST );
     gl.clear( COLOR_BUFFER_BIT );
@@ -49,9 +53,12 @@ class Canvas{
         
         uniform mat4 uMVMatrix;
         uniform mat4 uPMatrix;
+
+        varying vec4 vColor;
         
         void main(void) {
-        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+          gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+          vColor = aVertexColor;
         }
       """;
 
@@ -60,8 +67,10 @@ class Canvas{
     String fsSource = """
         precision mediump float;
         
+        varying vec4 vColor;
+        
         void main(void) {
-          gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);;
+          gl_FragColor = vColor;;
         }
       """;
     Program shaderProgram = create_program( vsSource, fsSource );
@@ -75,6 +84,12 @@ class Canvas{
     aVertexPosition = gl.getAttribLocation( shaderProgram, "aVertexPosition" );
     gl.enableVertexAttribArray( aVertexPosition );
     
+    //Color attribute
+    vColor = gl.getAttribLocation( shaderProgram, "aVertexColor" );
+    gl.enableVertexAttribArray( vColor );
+    color_buffer = gl.createBuffer();
+    gl.bindBuffer( ARRAY_BUFFER, color_buffer );
+    
     window.requestAnimationFrame((num time) => update(time));
   }
   
@@ -86,30 +101,14 @@ class Canvas{
     test += 0.05;
     
     //Perspective
-    Matrix4 pMatrix = makePerspectiveMatrix( radians(45.0), canvas.width / canvas.height, 0.1, 100.0 );
+    Matrix4 pMatrix = makePerspectiveMatrix( radians(45.0), canvas.width / canvas.height, 0.1, 500.0 );
     Float32List tmpList = new Float32List(16);
     pMatrix.copyIntoArray( tmpList );
     gl.uniformMatrix4fv( uPMatrix, false, tmpList );
     
-    
-/*
-    move( -1.5, 0.0, -7.0, 0.0, test, 0.0 );
-    draw_triangle(
-         0.0,  1.0,  0.0,
-         -1.0, -1.0,  0.0,
-         1.0, -1.0,  0.0
-       );
-
-    move( 1.5, 0.0, -7.0, test, 0.0, test );
-    draw_triangle(
-        0.0,  1.0,  0.0,
-        -1.0, -1.0,  0.0,
-        1.0, -1.0,  0.0
-      );
-*/
     if( file != null ){
       Matrix4 offset = new Matrix4.identity();
-      offset.translate(1.0, -2.0, -70.0);
+      offset.translate(1.0, -2.0, -140.0);
       offset.rotateX(test);
       offset.rotateY(test*0.5);
       file.draw( this, offset );
@@ -126,14 +125,24 @@ class Canvas{
   void draw_triangle(
                      double x1, double y1, double z1,
                      double x2, double y2, double z2,
-                     double x3, double y3, double z3
+                     double x3, double y3, double z3,
+                     double r, double g, double b
                      ){
+    
+    List<double> colors = new List();
+    for( int i=0; i<3; i++ )
+      colors.addAll( [ r, g, b, 1.0 ] );
+    gl.bindBuffer( ARRAY_BUFFER, color_buffer );
+    gl.bufferDataTyped( ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW );
+    gl.vertexAttribPointer( vColor, 4, FLOAT, false, 0, 0 );
+    
     Float32List vertices = new Float32List.fromList([
                                                      x1, y1, z1,
                                                      x2, y2, z2,
                                                      x3, y3, z3
                                                      ]);
 
+    gl.bindBuffer( ARRAY_BUFFER, vertexBuffer );
     gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
     gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
     gl.drawArrays( TRIANGLES, 0, 3 );
@@ -142,15 +151,25 @@ class Canvas{
                      double x1, double y1, double z1,
                      double x2, double y2, double z2,
                      double x3, double y3, double z3,
-                     double x4, double y4, double z4
+                     double x4, double y4, double z4,
+                     double r, double g, double b
                      ){
+    
     Float32List vertices = new Float32List.fromList([
                                                      x1, y1, z1,
                                                      x2, y2, z2,
                                                      x3, y3, z3,
                                                      x4, y4, z4
                                                      ]);
+    
+    List<double> colors = new List();
+    for( int i=0; i<4; i++ )
+      colors.addAll( [ r, g, b, 1.0 ] );
+    gl.bindBuffer( ARRAY_BUFFER, color_buffer );
+    gl.bufferDataTyped( ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW );
+    gl.vertexAttribPointer( vColor, 4, FLOAT, false, 0, 0 );
 
+    gl.bindBuffer( ARRAY_BUFFER, vertexBuffer );
     gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
     gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
     gl.drawArrays( TRIANGLE_FAN, 0, 4 );

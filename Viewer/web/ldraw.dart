@@ -198,7 +198,7 @@ class LDrawTriangle extends LDrawPrimitive{
 
   void draw( Canvas canvas, Matrix4 offset ){
     canvas.move(offset);
-    canvas.draw_triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3);
+    canvas.draw_triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3, 0.0, 1.0, 0.0);
   }
 }
 
@@ -218,7 +218,7 @@ class LDrawQuad extends LDrawPrimitive{
 
   void draw( Canvas canvas, Matrix4 offset ){
     canvas.move(offset);
-    canvas.draw_quad(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
+    canvas.draw_quad(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, 1.0, 0.0, 0.0);
   }
 }
 
