@@ -4,9 +4,17 @@ import 'dart:html';
 import 'dart:typed_data';
 import 'dart:web_gl';
 
+import 'package:vector_math/vector_math.dart';
+
 class Canvas{
   CanvasElement canvas;
   RenderingContext gl;
+  
+  UniformLocation uPMatrix;
+  UniformLocation uMVMatrix;
+  int aVertexPosition;
+  
+  Program shaderProgram;
   
   Canvas( String canvas_selector ){
     canvas = querySelector( canvas_selector );
@@ -23,20 +31,9 @@ class Canvas{
     //TODO: check if transparency works
     gl.enable( DEPTH_TEST );
     gl.clear( COLOR_BUFFER_BIT );
-    gl.viewport( 0,0, canvas.width, canvas.height );
-  }
-  
-  void update(){
-    Buffer vertexBuffer = gl.createBuffer();
-    gl.bindBuffer(ARRAY_BUFFER, vertexBuffer);
     
-    Float32List vertices = new Float32List.fromList([
-                                                     0.0,  1.0,  0.0,
-                                                     -1.0, -1.0,  0.0,
-                                                     1.0, -1.0,  0.0
-                                                     ]);
-
-    gl.bufferDataTyped(ARRAY_BUFFER, vertices, STATIC_DRAW);
+    
+    //Shader program
     String vsSource = """
         attribute vec3 aVertexPosition;
         attribute vec4 aVertexColor;
@@ -47,31 +44,62 @@ class Canvas{
         void main(void) {
         gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
         }
-        """;
+      """;
 
     // fragment shader source code. uColor is our variable that we'll
     // use to animate color
     String fsSource = """
-    precision mediump float;
+        precision mediump float;
+        
+        void main(void) {
+          gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);;
+        }
+      """;
+    Program shaderProgram = create_program( vsSource, fsSource );
+    
+    
+    //View transformation
+    uPMatrix = gl.getUniformLocation( shaderProgram, "uPMatrix" );
+    uMVMatrix = gl.getUniformLocation( shaderProgram, "uMVMatrix" );
 
-    void main(void) {
-      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);;
-    }
-    """;
+    //Position attribute
+    aVertexPosition = gl.getAttribLocation( shaderProgram, "aVertexPosition" );
+    gl.enableVertexAttribArray( aVertexPosition );
+  }
+  
+  void update(){
+    gl.viewport( 0,0, canvas.width, canvas.height );
+    Matrix4 pMatrix = makePerspectiveMatrix( radians(45.0), canvas.width / canvas.height, 0.1, 100.0 );
+    Matrix4 mvMatrix = new Matrix4.identity();
+    mvMatrix.translate( -1.5, 0.0, -7.0 );
+    
+    Buffer vertexBuffer = gl.createBuffer();
+    gl.bindBuffer( ARRAY_BUFFER, vertexBuffer );
+    
+    Float32List vertices = new Float32List.fromList([
+                                                     0.0,  1.0,  0.0,
+                                                     -1.0, -1.0,  0.0,
+                                                     1.0, -1.0,  0.0
+                                                     ]);
+
+    gl.bufferDataTyped(ARRAY_BUFFER, vertices, STATIC_DRAW);
+    
   
 
     gl.clear( COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT );
     
-    Program shaderProgram = create_program( vsSource, fsSource );
   
-    gl.bindBuffer( ARRAY_BUFFER, vertexBuffer );
-    int vertexPos = gl.getAttribLocation( shaderProgram, "aVertexPosition" );
-    gl.enableVertexAttribArray( vertexPos );
-    gl.vertexAttribPointer( vertexPos, 3, FLOAT, false, 0, 0 );
-    gl.drawArrays( TRIANGLES, 0, 3);
+    gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
     
-    var uPMatrix = gl.getUniformLocation(shaderProgram, "uPMatrix");
-    var uMVMatrix = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+    
+    Float32List tmpList = new Float32List(16);
+    pMatrix.copyIntoArray( tmpList );
+    gl.uniformMatrix4fv( uPMatrix, false, tmpList );
+    mvMatrix.copyIntoArray( tmpList );
+    gl.uniformMatrix4fv( uMVMatrix, false, tmpList );
+    
+    gl.drawArrays( TRIANGLES, 0, 3);
+
   
   }
   
