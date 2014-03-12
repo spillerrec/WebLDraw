@@ -148,10 +148,12 @@ class Canvas{
                                                      x1, y1, z1,
                                                      x2, y2, z2,
                                                      x3, y3, z3,
-                                                     x4, y4, z4,
+                                                     x4, y4, z4
                                                      ]);
-    draw_triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3);
-    draw_triangle(x1, y1, z1, x4, y4, z4, x3, y3, z3);
+
+    gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
+    gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
+    gl.drawArrays( TRIANGLE_FAN, 0, 4 );
   }
   
 
