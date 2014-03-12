@@ -6,6 +6,8 @@ import 'dart:web_gl';
 
 import 'package:vector_math/vector_math.dart';
 
+import 'ldraw.dart';
+
 class Canvas{
   CanvasElement canvas;
   RenderingContext gl;
@@ -16,6 +18,8 @@ class Canvas{
   double test = 0.0;
   
   Program shaderProgram;
+  
+  LDrawFile file;
   
   Canvas( String canvas_selector ){
     canvas = querySelector( canvas_selector );
@@ -88,7 +92,7 @@ class Canvas{
     gl.uniformMatrix4fv( uPMatrix, false, tmpList );
     
     
-
+/*
     move( -1.5, 0.0, -7.0, 0.0, test, 0.0 );
     draw_triangle(
          0.0,  1.0,  0.0,
@@ -102,17 +106,19 @@ class Canvas{
         -1.0, -1.0,  0.0,
         1.0, -1.0,  0.0
       );
-
+*/
+    if( file != null ){
+      Matrix4 offset = new Matrix4.identity();
+      offset.translate(1.0, -2.0, -70.0);
+      offset.rotateX(test);
+      offset.rotateY(test*0.5);
+      file.draw( this, offset );
+    }
+    
     window.requestAnimationFrame((num time) => update(time));
   }
   
-  void move( double x, double y, double z, double rx, double ry, double rz ){
-    Matrix4 mvMatrix = new Matrix4.identity();
-    mvMatrix.translate( x, y, z );
-    mvMatrix.rotateX( rx );
-    mvMatrix.rotateY( ry );
-    mvMatrix.rotateZ( rz );
-
+  void move( Matrix4 mvMatrix ){
     Float32List tmpList = new Float32List(16);
     mvMatrix.copyIntoArray( tmpList );
     gl.uniformMatrix4fv( uMVMatrix, false, tmpList );
@@ -131,6 +137,21 @@ class Canvas{
     gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
     gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
     gl.drawArrays( TRIANGLES, 0, 3 );
+  }
+  void draw_quad(
+                     double x1, double y1, double z1,
+                     double x2, double y2, double z2,
+                     double x3, double y3, double z3,
+                     double x4, double y4, double z4
+                     ){
+    Float32List vertices = new Float32List.fromList([
+                                                     x1, y1, z1,
+                                                     x2, y2, z2,
+                                                     x3, y3, z3,
+                                                     x4, y4, z4,
+                                                     ]);
+    draw_triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3);
+    draw_triangle(x1, y1, z1, x4, y4, z4, x3, y3, z3);
   }
   
 

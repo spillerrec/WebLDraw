@@ -3,13 +3,21 @@ library LDRAW;
 import 'dart:collection';
 import 'dart:html';
 
+import 'package:vector_math/vector_math.dart';
+
+import 'webgl.dart';
+
 
 class LDrawFileContent extends LDrawPrimitive{
   List<LDrawPrimitive> primitives = new List<LDrawPrimitive>();
 
+  void draw( Canvas canvas, Matrix4 offset ){
+    primitives.forEach( (x) => x.draw( canvas, offset ) );
+  }
   void init(String content){
     try{
     List<String> lines = content.split("\n");
+    lines.removeWhere((test)=>test.isEmpty);
     lines.forEach((line){
       List<String> parts = line.trim().split(" ");
       
@@ -137,9 +145,9 @@ class LDrawFileContent extends LDrawPrimitive{
 class LDrawFile extends LDrawPrimitive{
   int color = 16;
   double x = 0.0, y = 0.0, z = 0.0;
-  double a = 0.0, b = 0.0, c = 0.0;
-  double d = 0.0, e = 0.0, f = 0.0;
-  double g = 0.0, h = 0.0, i = 0.0;
+  double a = 1.0, b = 0.0, c = 0.0;
+  double d = 0.0, e = 1.0, f = 0.0;
+  double g = 0.0, h = 0.0, i = 1.0;
   LDrawFileContent content;
 
   void debug(int indent){
@@ -152,6 +160,12 @@ class LDrawFile extends LDrawPrimitive{
     }
     else
       print( spaces + "File, no content" );
+  }
+
+  void draw( Canvas canvas, Matrix4 offset ){
+    Matrix4 pos = new Matrix4(a, d, g, 0.0, b, e, h, 0.0, c, f, i, 0.0, x, y, z, 1.0);
+    pos = offset.clone().multiply(pos);
+    content.draw(canvas, pos);
   }
 }
 
@@ -180,6 +194,11 @@ class LDrawTriangle extends LDrawPrimitive{
       spaces += "  ";
     print( spaces + "Triangle" );
   }
+
+  void draw( Canvas canvas, Matrix4 offset ){
+    canvas.move(offset);
+    canvas.draw_triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3);
+  }
 }
 
 class LDrawQuad extends LDrawPrimitive{
@@ -194,6 +213,11 @@ class LDrawQuad extends LDrawPrimitive{
     for(int i=0; i<indent; i++)
       spaces += "  ";
     print( spaces + "Quad" );
+  }
+
+  void draw( Canvas canvas, Matrix4 offset ){
+    canvas.move(offset);
+    canvas.draw_quad(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
   }
 }
 
@@ -213,7 +237,7 @@ class LDrawOptional extends LDrawPrimitive{
 }
 
 abstract class LDrawPrimitive{
-  //void draw(); //TODO:
+  void draw( Canvas canvas, Matrix4 offset ){ }//TODO: make it abstract
   
   void debug(int indent);
 }
@@ -227,6 +251,7 @@ void load_ldraw( LDrawFile file, String name ){
   loading++;
   List<String> names = new List<String>();
   cache[name] = new LDrawFileContent();
+  file.content = cache[name];
   //names.add( name );
   names.add( "ldraw/parts/" + name );
   names.add( "ldraw/p/" + name );
