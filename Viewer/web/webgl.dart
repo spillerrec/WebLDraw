@@ -122,6 +122,24 @@ class Canvas{
     mvMatrix.copyIntoArray( tmpList );
     gl.uniformMatrix4fv( uMVMatrix, false, tmpList );
   }
+  void draw_line( double x1, double y1, double z1, double x2, double y2, double z2, double r, double g, double b ){
+    List<double> colors = new List();
+    for( int i=0; i<2; i++ )
+      colors.addAll( [ r, g, b, 1.0 ] );
+    gl.bindBuffer( ARRAY_BUFFER, color_buffer );
+    gl.bufferDataTyped( ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW );
+    gl.vertexAttribPointer( vColor, 4, FLOAT, false, 0, 0 );
+
+    Float32List vertices = new Float32List.fromList([
+                                                     x1, y1, z1,
+                                                     x2, y2, z2
+                                                     ]);
+
+    gl.bindBuffer( ARRAY_BUFFER, vertexBuffer );
+    gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
+    gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
+    gl.drawArrays( LINES, 0, 2 );
+  }
   void draw_triangle(
                      double x1, double y1, double z1,
                      double x2, double y2, double z2,

@@ -10,12 +10,16 @@ import 'webgl.dart';
 class LDrawContext{
   Matrix4 offset;
   double r, g, b; //Main color
+  double er, eg, eb; //Secondary color
   
   LDrawContext( Matrix4 offset, double r, double g, double b ){
     this.offset = offset.clone();
     this.r = r;
     this.g = g;
     this.b = b;
+    er = 0x33/255;
+    eb = 0x33/255;
+    eg = 0x33/255;
     //TODO: does Dart have some smart syntax for this?
   }
   
@@ -204,6 +208,12 @@ class LDrawLine extends LDrawPrimitive{
     for(int i=0; i<indent; i++)
       spaces += "  ";
     print( spaces + "Line" );
+  }
+
+  void draw( Canvas canvas, LDrawContext context ){
+    LDrawContext con = context.update_color(color);
+    canvas.move(context.offset);
+    canvas.draw_line(x1, y1, z1, x2, y2, z2, con.er, con.eg, con.eb);
   }
 }
 
