@@ -7,7 +7,6 @@ void main() {
   load_file();
   
   Canvas canvas = new Canvas( "#canvas" );
-  canvas.update();
 }
 
 void load_file() {

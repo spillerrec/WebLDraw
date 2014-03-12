@@ -13,6 +13,7 @@ class Canvas{
   UniformLocation uPMatrix;
   UniformLocation uMVMatrix;
   int aVertexPosition;
+  double test = 0.0;
   
   Program shaderProgram;
   
@@ -26,6 +27,10 @@ class Canvas{
       //TODO: throw exception
       return;
     }
+
+    //Vertex Array Object?
+    Buffer vertexBuffer = gl.createBuffer();
+    gl.bindBuffer( ARRAY_BUFFER, vertexBuffer );
     
     gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
     //TODO: check if transparency works
@@ -65,16 +70,32 @@ class Canvas{
     //Position attribute
     aVertexPosition = gl.getAttribLocation( shaderProgram, "aVertexPosition" );
     gl.enableVertexAttribArray( aVertexPosition );
+    
+    window.requestAnimationFrame((num time) => update(time));
   }
   
-  void update(){
+  void update(num time){
+    //Init
     gl.viewport( 0,0, canvas.width, canvas.height );
+    gl.clear( COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT );
+    
+    test += 0.1;
+    
+    //Perspective
     Matrix4 pMatrix = makePerspectiveMatrix( radians(45.0), canvas.width / canvas.height, 0.1, 100.0 );
     Matrix4 mvMatrix = new Matrix4.identity();
+    //mvMatrix.rotateX(test);
     mvMatrix.translate( -1.5, 0.0, -7.0 );
+    mvMatrix.rotateY(test);
+
+    //Commit perspective
+    Float32List tmpList = new Float32List(16);
+    pMatrix.copyIntoArray( tmpList );
+    gl.uniformMatrix4fv( uPMatrix, false, tmpList );
+    mvMatrix.copyIntoArray( tmpList );
+    gl.uniformMatrix4fv( uMVMatrix, false, tmpList );
     
-    Buffer vertexBuffer = gl.createBuffer();
-    gl.bindBuffer( ARRAY_BUFFER, vertexBuffer );
+    
     
     Float32List vertices = new Float32List.fromList([
                                                      0.0,  1.0,  0.0,
@@ -82,25 +103,25 @@ class Canvas{
                                                      1.0, -1.0,  0.0
                                                      ]);
 
-    gl.bufferDataTyped(ARRAY_BUFFER, vertices, STATIC_DRAW);
+    gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
     
-  
-
-    gl.clear( COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT );
-    
-  
     gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
     
     
-    Float32List tmpList = new Float32List(16);
-    pMatrix.copyIntoArray( tmpList );
-    gl.uniformMatrix4fv( uPMatrix, false, tmpList );
+    //Finally draw
+    gl.drawArrays( TRIANGLES, 0, 3 );
+    
+
+    mvMatrix.rotateY(-test);
+    //mvMatrix.translate( 1.5, 0.0, 7.0 );
+    mvMatrix.translate( 3.0, 0.0, 0.0 );
+    mvMatrix.rotateX(-test);
     mvMatrix.copyIntoArray( tmpList );
     gl.uniformMatrix4fv( uMVMatrix, false, tmpList );
-    
-    gl.drawArrays( TRIANGLES, 0, 3);
 
-  
+    gl.drawArrays( TRIANGLES, 0, 3 );
+    
+    window.requestAnimationFrame((num time) => update(time));
   }
   
 
