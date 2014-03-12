@@ -20,6 +20,7 @@ class LDrawFileContent extends LDrawPrimitive{
     lines.removeWhere((test)=>test.isEmpty);
     lines.forEach((line){
       List<String> parts = line.trim().split(" ");
+      parts.removeWhere((test)=>test.isEmpty); //Note: could mess up file names if they contain spaces 
       
       if( parts.length > 0 )
          switch( parts.removeAt(0) ){
