@@ -10,14 +10,14 @@ void main() {
 }
 
 void load_file() {
-  HttpRequest.getString('6speed.ldr')
+  HttpRequest.getString('pin.ldr')
   .then(process_ldraw);
 }
 
 void process_ldraw(String content){
   LDrawFile file = new LDrawFile();
   file.content = new LDrawFileContent();
-  //file.content.init(content);
+  file.content.init(content);
   //Timer timer = new Timer( const Duration(seconds:5), () => file.debug(0));
 }
 

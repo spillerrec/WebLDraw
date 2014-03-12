@@ -79,49 +79,58 @@ class Canvas{
     gl.viewport( 0,0, canvas.width, canvas.height );
     gl.clear( COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT );
     
-    test += 0.1;
+    test += 0.05;
     
     //Perspective
     Matrix4 pMatrix = makePerspectiveMatrix( radians(45.0), canvas.width / canvas.height, 0.1, 100.0 );
-    Matrix4 mvMatrix = new Matrix4.identity();
-    //mvMatrix.rotateX(test);
-    mvMatrix.translate( -1.5, 0.0, -7.0 );
-    mvMatrix.rotateY(test);
-
-    //Commit perspective
     Float32List tmpList = new Float32List(16);
     pMatrix.copyIntoArray( tmpList );
     gl.uniformMatrix4fv( uPMatrix, false, tmpList );
+    
+    
+
+    move( -1.5, 0.0, -7.0, 0.0, test, 0.0 );
+    draw_triangle(
+         0.0,  1.0,  0.0,
+         -1.0, -1.0,  0.0,
+         1.0, -1.0,  0.0
+       );
+
+    move( 1.5, 0.0, -7.0, test, 0.0, test );
+    draw_triangle(
+        0.0,  1.0,  0.0,
+        -1.0, -1.0,  0.0,
+        1.0, -1.0,  0.0
+      );
+
+    window.requestAnimationFrame((num time) => update(time));
+  }
+  
+  void move( double x, double y, double z, double rx, double ry, double rz ){
+    Matrix4 mvMatrix = new Matrix4.identity();
+    mvMatrix.translate( x, y, z );
+    mvMatrix.rotateX( rx );
+    mvMatrix.rotateY( ry );
+    mvMatrix.rotateZ( rz );
+
+    Float32List tmpList = new Float32List(16);
     mvMatrix.copyIntoArray( tmpList );
     gl.uniformMatrix4fv( uMVMatrix, false, tmpList );
-    
-    
-    
+  }
+  void draw_triangle(
+                     double x1, double y1, double z1,
+                     double x2, double y2, double z2,
+                     double x3, double y3, double z3
+                     ){
     Float32List vertices = new Float32List.fromList([
-                                                     0.0,  1.0,  0.0,
-                                                     -1.0, -1.0,  0.0,
-                                                     1.0, -1.0,  0.0
+                                                     x1, y1, z1,
+                                                     x2, y2, z2,
+                                                     x3, y3, z3
                                                      ]);
 
     gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
-    
     gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
-    
-    
-    //Finally draw
     gl.drawArrays( TRIANGLES, 0, 3 );
-    
-
-    mvMatrix.rotateY(-test);
-    //mvMatrix.translate( 1.5, 0.0, 7.0 );
-    mvMatrix.translate( 3.0, 0.0, 0.0 );
-    mvMatrix.rotateX(-test);
-    mvMatrix.copyIntoArray( tmpList );
-    gl.uniformMatrix4fv( uMVMatrix, false, tmpList );
-
-    gl.drawArrays( TRIANGLES, 0, 3 );
-    
-    window.requestAnimationFrame((num time) => update(time));
   }
   
 
