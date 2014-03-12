@@ -7,12 +7,36 @@ import 'package:vector_math/vector_math.dart';
 
 import 'webgl.dart';
 
+class LDrawContext{
+  Matrix4 offset;
+  double r, g, b; //Main color
+  
+  LDrawContext( Matrix4 offset, double r, double g, double b ){
+    this.offset = offset.clone();
+    this.r = r;
+    this.g = g;
+    this.b = b;
+    //TODO: does Dart have some smart syntax for this?
+  }
+  
+  LDrawContext update_color( int code ){
+    LDrawContext sub = new LDrawContext( offset, r,g,b );
+    switch( code ){
+      case 16: break; //Do nothing, use main color
+      case 24: break; //TODO: !
+      case 4: sub.r=0xC9/255; sub.g=0x1A/255; sub.b=0x09/255; break; 
+      case 0: sub.r=0x00/255; sub.g=0x00/255; sub.b=0x00/255; break; 
+      case 7: sub.r=0x9B/255; sub.g=0xA1/255; sub.b=0x9D/255; break; 
+    }
+    return sub;
+  }
+}
 
 class LDrawFileContent extends LDrawPrimitive{
   List<LDrawPrimitive> primitives = new List<LDrawPrimitive>();
 
-  void draw( Canvas canvas, Matrix4 offset ){
-    primitives.forEach( (x) => x.draw( canvas, offset ) );
+  void draw( Canvas canvas, LDrawContext context ){
+    primitives.forEach( (x) => x.draw( canvas, context ) );
   }
   void init(String content){
     try{
@@ -163,10 +187,10 @@ class LDrawFile extends LDrawPrimitive{
       print( spaces + "File, no content" );
   }
 
-  void draw( Canvas canvas, Matrix4 offset ){
+  void draw( Canvas canvas, LDrawContext context ){
     Matrix4 pos = new Matrix4(a, d, g, 0.0, b, e, h, 0.0, c, f, i, 0.0, x, y, z, 1.0);
-    pos = offset.clone().multiply(pos);
-    content.draw(canvas, pos);
+    pos = context.offset.clone().multiply(pos);
+    content.draw(canvas, new LDrawContext( pos, context.r, context.g, context.b ).update_color(color) );
   }
 }
 
@@ -196,9 +220,10 @@ class LDrawTriangle extends LDrawPrimitive{
     print( spaces + "Triangle" );
   }
 
-  void draw( Canvas canvas, Matrix4 offset ){
-    canvas.move(offset);
-    canvas.draw_triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3, 0.0, 1.0, 0.0);
+  void draw( Canvas canvas, LDrawContext context ){
+    LDrawContext con = context.update_color(color);
+    canvas.move(context.offset);
+    canvas.draw_triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3, con.r, con.g, con.b);
   }
 }
 
@@ -216,9 +241,10 @@ class LDrawQuad extends LDrawPrimitive{
     print( spaces + "Quad" );
   }
 
-  void draw( Canvas canvas, Matrix4 offset ){
-    canvas.move(offset);
-    canvas.draw_quad(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, 1.0, 0.0, 0.0);
+  void draw( Canvas canvas, LDrawContext context ){
+    LDrawContext con = context.update_color(color);
+    canvas.move(context.offset);
+    canvas.draw_quad(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, con.r, con.g, con.b);
   }
 }
 
@@ -238,7 +264,7 @@ class LDrawOptional extends LDrawPrimitive{
 }
 
 abstract class LDrawPrimitive{
-  void draw( Canvas canvas, Matrix4 offset ){ }//TODO: make it abstract
+  void draw( Canvas canvas, LDrawContext context ){ }//TODO: make it abstract
   
   void debug(int indent);
 }

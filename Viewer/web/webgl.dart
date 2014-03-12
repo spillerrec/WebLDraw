@@ -111,7 +111,7 @@ class Canvas{
       offset.translate(1.0, -2.0, -140.0);
       offset.rotateX(test);
       offset.rotateY(test*0.5);
-      file.draw( this, offset );
+      file.draw( this, new LDrawContext( offset, 0.0, 0.0, 0.0 ) );
     }
     
     window.requestAnimationFrame((num time) => update(time));
