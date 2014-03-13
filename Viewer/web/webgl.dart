@@ -15,12 +15,11 @@ class Canvas{
   UniformLocation uPMatrix;
   UniformLocation uMVMatrix;
   int aVertexPosition;
-  int vColor;
+  UniformLocation aColor;
   double test = 0.0;
   
   Program shaderProgram;
   
-  Buffer color_buffer;
   Buffer vertexBuffer;
   
   LDrawFile file;
@@ -55,10 +54,11 @@ class Canvas{
         uniform mat4 uPMatrix;
 
         varying vec4 vColor;
+        uniform vec4 aColor;
         
         void main(void) {
           gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-          vColor = aVertexColor;
+          vColor = aColor;
         }
       """;
 
@@ -84,11 +84,7 @@ class Canvas{
     aVertexPosition = gl.getAttribLocation( shaderProgram, "aVertexPosition" );
     gl.enableVertexAttribArray( aVertexPosition );
     
-    //Color attribute
-    vColor = gl.getAttribLocation( shaderProgram, "aVertexColor" );
-    gl.enableVertexAttribArray( vColor );
-    color_buffer = gl.createBuffer();
-    gl.bindBuffer( ARRAY_BUFFER, color_buffer );
+    aColor = gl.getUniformLocation( shaderProgram, "aColor" );
     
     window.requestAnimationFrame((num time) => update(time));
   }
@@ -123,19 +119,13 @@ class Canvas{
     gl.uniformMatrix4fv( uMVMatrix, false, tmpList );
   }
   void draw_line( double x1, double y1, double z1, double x2, double y2, double z2, double r, double g, double b ){
-    List<double> colors = new List();
-    for( int i=0; i<2; i++ )
-      colors.addAll( [ r, g, b, 1.0 ] );
-    gl.bindBuffer( ARRAY_BUFFER, color_buffer );
-    gl.bufferDataTyped( ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW );
-    gl.vertexAttribPointer( vColor, 4, FLOAT, false, 0, 0 );
+    gl.uniform4f( aColor, r, g, b, 1.0 );
 
     Float32List vertices = new Float32List.fromList([
                                                      x1, y1, z1,
                                                      x2, y2, z2
                                                      ]);
 
-    gl.bindBuffer( ARRAY_BUFFER, vertexBuffer );
     gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
     gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
     gl.drawArrays( LINES, 0, 2 );
@@ -146,13 +136,8 @@ class Canvas{
                      double x3, double y3, double z3,
                      double r, double g, double b
                      ){
+    gl.uniform4f( aColor, r, g, b, 1.0 );
     
-    List<double> colors = new List();
-    for( int i=0; i<3; i++ )
-      colors.addAll( [ r, g, b, 1.0 ] );
-    gl.bindBuffer( ARRAY_BUFFER, color_buffer );
-    gl.bufferDataTyped( ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW );
-    gl.vertexAttribPointer( vColor, 4, FLOAT, false, 0, 0 );
     
     Float32List vertices = new Float32List.fromList([
                                                      x1, y1, z1,
@@ -160,7 +145,6 @@ class Canvas{
                                                      x3, y3, z3
                                                      ]);
 
-    gl.bindBuffer( ARRAY_BUFFER, vertexBuffer );
     gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
     gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
     gl.drawArrays( TRIANGLES, 0, 3 );
@@ -172,6 +156,7 @@ class Canvas{
                      double x4, double y4, double z4,
                      double r, double g, double b
                      ){
+    gl.uniform4f( aColor, r, g, b, 1.0 );
     
     Float32List vertices = new Float32List.fromList([
                                                      x1, y1, z1,
@@ -180,14 +165,7 @@ class Canvas{
                                                      x4, y4, z4
                                                      ]);
     
-    List<double> colors = new List();
-    for( int i=0; i<4; i++ )
-      colors.addAll( [ r, g, b, 1.0 ] );
-    gl.bindBuffer( ARRAY_BUFFER, color_buffer );
-    gl.bufferDataTyped( ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW );
-    gl.vertexAttribPointer( vColor, 4, FLOAT, false, 0, 0 );
 
-    gl.bindBuffer( ARRAY_BUFFER, vertexBuffer );
     gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
     gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
     gl.drawArrays( TRIANGLE_FAN, 0, 4 );
