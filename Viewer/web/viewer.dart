@@ -11,9 +11,9 @@ void main() {
 Canvas canvas;
 
 void load_file() {
-//  HttpRequest.getString('6speed.ldr')
+  HttpRequest.getString('6speed.new.ldr')
 //  HttpRequest.getString('pin.ldr')
-  HttpRequest.getString('colors.ldr')
+//  HttpRequest.getString('colors.ldr')
 //  HttpRequest.getString('ldraw/p/axle.dat') //Fails to load!
 //  HttpRequest.getString('ldraw/p/peghole2.dat')
   .then(process_ldraw);
