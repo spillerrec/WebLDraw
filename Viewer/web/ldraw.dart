@@ -2,6 +2,7 @@ library LDRAW;
 
 import 'dart:collection';
 import 'dart:html';
+import 'dart:typed_data';
 
 import 'package:vector_math/vector_math.dart';
 
@@ -66,6 +67,14 @@ class LDrawFileContent extends LDrawPrimitive{
     }
   }
   
+  Float32List from_string_list( List<String> parts, int start, int amount ){
+    Float32List list = new Float32List( amount );
+    for( int i=0; i<amount; i++ ){
+      list[i]=( double.parse( parts[i+start] ) );
+    }
+    return list;
+  }
+  
   void parse_comment(List<String> parts){
     if( parts.length > 0 )
       switch( parts[0] ){
@@ -98,47 +107,29 @@ class LDrawFileContent extends LDrawPrimitive{
   }
   void parse_line(List<String> parts){
     assert(parts.length >= 7);
+    
     LDrawLine line = new LDrawLine();
     line.color = int.parse( parts[0] );
-    line.x1 = double.parse( parts[1] );
-    line.y1 = double.parse( parts[2] );
-    line.z1 = double.parse( parts[3] );
-    line.x2 = double.parse( parts[4] );
-    line.y2 = double.parse( parts[5] );
-    line.z2 = double.parse( parts[6] );
+    line.vertices = from_string_list( parts, 1, 6 );
+    
     primitives.add(line);
   }
   void parse_triangle(List<String> parts){
     assert(parts.length >= 10);
+    
     LDrawTriangle tri = new LDrawTriangle();
     tri.color = int.parse( parts[0] );
-    tri.x1 = double.parse( parts[1] );
-    tri.y1 = double.parse( parts[2] );
-    tri.z1 = double.parse( parts[3] );
-    tri.x2 = double.parse( parts[4] );
-    tri.y2 = double.parse( parts[5] );
-    tri.z2 = double.parse( parts[6] );
-    tri.x3 = double.parse( parts[7] );
-    tri.y3 = double.parse( parts[8] );
-    tri.z3 = double.parse( parts[9] );
+    tri.vertices = from_string_list( parts, 1, 9 );
+    
     primitives.add(tri);
   }
   void parse_quad(List<String> parts){
     assert(parts.length >= 13);
+    
     LDrawQuad quad = new LDrawQuad();
     quad.color = int.parse( parts[0] );
-    quad.x1 = double.parse( parts[1] );
-    quad.y1 = double.parse( parts[2] );
-    quad.z1 = double.parse( parts[3] );
-    quad.x2 = double.parse( parts[4] );
-    quad.y2 = double.parse( parts[5] );
-    quad.z2 = double.parse( parts[6] );
-    quad.x3 = double.parse( parts[7] );
-    quad.y3 = double.parse( parts[8] );
-    quad.z3 = double.parse( parts[9] );
-    quad.x4 = double.parse( parts[10] );
-    quad.y4 = double.parse( parts[11] );
-    quad.z4 = double.parse( parts[12] );
+    quad.vertices = from_string_list( parts, 1, 12 );
+    
     primitives.add(quad);
   }
   void parse_optional(List<String> parts){
@@ -159,16 +150,6 @@ class LDrawFileContent extends LDrawPrimitive{
     opt.z4 = double.parse( parts[12] );
     primitives.add(opt);
   }
-
-  void debug(int indent){
-    String spaces = "";
-    for(int i=0; i<indent; i++)
-      spaces += "  ";
-    print( spaces + "Content" );
-    primitives.forEach((f){
-      f.debug(indent+1);
-    });
-  }
 }
 
 class LDrawFile extends LDrawPrimitive{
@@ -179,18 +160,6 @@ class LDrawFile extends LDrawPrimitive{
   double g = 0.0, h = 0.0, i = 1.0;
   LDrawFileContent content;
 
-  void debug(int indent){
-    String spaces = "";
-    for(int i=0; i<indent; i++)
-      spaces += "  ";
-    if( content != null ){
-      print( spaces + "File" );
-      content.debug(indent+1);
-    }
-    else
-      print( spaces + "File, no content" );
-  }
-
   void draw( Canvas canvas, LDrawContext context ){
     Matrix4 pos = new Matrix4(a, d, g, 0.0, b, e, h, 0.0, c, f, i, 0.0, x, y, z, 1.0);
     pos = context.offset.clone().multiply(pos);
@@ -200,61 +169,37 @@ class LDrawFile extends LDrawPrimitive{
 
 class LDrawLine extends LDrawPrimitive{
   int color = 16;
-  double x1 = 0.0, y1 = 0.0, z1 = 0.0;
-  double x2 = 0.0, y2 = 0.0, z2 = 0.0;
-  
-  void debug(int indent){
-    String spaces = "";
-    for(int i=0; i<indent; i++)
-      spaces += "  ";
-    print( spaces + "Line" );
-  }
+  Float32List vertices;
 
   void draw( Canvas canvas, LDrawContext context ){
     LDrawContext con = context.update_color(color);
     canvas.move(context.offset);
-    canvas.draw_line(x1, y1, z1, x2, y2, z2, con.er, con.eg, con.eb);
+    canvas.setColor( con.er, con.eg, con.eb );
+    canvas.draw_lines( vertices, 2 );
   }
 }
 
 class LDrawTriangle extends LDrawPrimitive{
   int color = 16;
-  double x1 = 0.0, y1 = 0.0, z1 = 0.0;
-  double x2 = 0.0, y2 = 0.0, z2 = 0.0;
-  double x3 = 0.0, y3 = 0.0, z3 = 0.0;
-
-  void debug(int indent){
-    String spaces = "";
-    for(int i=0; i<indent; i++)
-      spaces += "  ";
-    print( spaces + "Triangle" );
-  }
+  Float32List vertices;
 
   void draw( Canvas canvas, LDrawContext context ){
     LDrawContext con = context.update_color(color);
     canvas.move(context.offset);
-    canvas.draw_triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3, con.r, con.g, con.b);
+    canvas.setColor( con.r, con.g, con.b );
+    canvas.draw_triangle_fan( vertices, 3 );
   }
 }
 
 class LDrawQuad extends LDrawPrimitive{
   int color = 16;
-  double x1 = 0.0, y1 = 0.0, z1 = 0.0;
-  double x2 = 0.0, y2 = 0.0, z2 = 0.0;
-  double x3 = 0.0, y3 = 0.0, z3 = 0.0;
-  double x4 = 0.0, y4 = 0.0, z4 = 0.0;
-  
-  void debug(int indent){
-    String spaces = "";
-    for(int i=0; i<indent; i++)
-      spaces += "  ";
-    print( spaces + "Quad" );
-  }
+  Float32List vertices;
 
   void draw( Canvas canvas, LDrawContext context ){
     LDrawContext con = context.update_color(color);
     canvas.move(context.offset);
-    canvas.draw_quad(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, con.r, con.g, con.b);
+    canvas.setColor( con.r, con.g, con.b );
+    canvas.draw_triangle_fan( vertices, 4 );
   }
 }
 
@@ -265,18 +210,10 @@ class LDrawOptional extends LDrawPrimitive{
   double x3 = 0.0, y3 = 0.0, z3 = 0.0;
   double x4 = 0.0, y4 = 0.0, z4 = 0.0;
   
-  void debug(int indent){
-    String spaces = "";
-    for(int i=0; i<indent; i++)
-      spaces += "  ";
-    print( spaces + "Optional" );
-  }
 }
 
 abstract class LDrawPrimitive{
   void draw( Canvas canvas, LDrawContext context ){ }//TODO: make it abstract
-  
-  void debug(int indent);
 }
 
 void load_ldraw( LDrawFile file, String name ){

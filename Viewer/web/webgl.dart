@@ -118,57 +118,18 @@ class Canvas{
     mvMatrix.copyIntoArray( tmpList );
     gl.uniformMatrix4fv( uMVMatrix, false, tmpList );
   }
-  void draw_line( double x1, double y1, double z1, double x2, double y2, double z2, double r, double g, double b ){
-    gl.uniform4f( aColor, r, g, b, 1.0 );
+  void setColor( double r, double g, double b ) => gl.uniform4f( aColor, r, g, b, 1.0 );
 
-    Float32List vertices = new Float32List.fromList([
-                                                     x1, y1, z1,
-                                                     x2, y2, z2
-                                                     ]);
-
+  
+  void draw_lines( Float32List vertices, int amount ){
     gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
     gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
-    gl.drawArrays( LINES, 0, 2 );
+    gl.drawArrays( LINES, 0, amount );
   }
-  void draw_triangle(
-                     double x1, double y1, double z1,
-                     double x2, double y2, double z2,
-                     double x3, double y3, double z3,
-                     double r, double g, double b
-                     ){
-    gl.uniform4f( aColor, r, g, b, 1.0 );
-    
-    
-    Float32List vertices = new Float32List.fromList([
-                                                     x1, y1, z1,
-                                                     x2, y2, z2,
-                                                     x3, y3, z3
-                                                     ]);
-
+  void draw_triangle_fan( Float32List vertices, int amount ){
     gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
     gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
-    gl.drawArrays( TRIANGLES, 0, 3 );
-  }
-  void draw_quad(
-                     double x1, double y1, double z1,
-                     double x2, double y2, double z2,
-                     double x3, double y3, double z3,
-                     double x4, double y4, double z4,
-                     double r, double g, double b
-                     ){
-    gl.uniform4f( aColor, r, g, b, 1.0 );
-    
-    Float32List vertices = new Float32List.fromList([
-                                                     x1, y1, z1,
-                                                     x2, y2, z2,
-                                                     x3, y3, z3,
-                                                     x4, y4, z4
-                                                     ]);
-    
-
-    gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
-    gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
-    gl.drawArrays( TRIANGLE_FAN, 0, 4 );
+    gl.drawArrays( TRIANGLE_FAN, 0, amount );
   }
   
 
