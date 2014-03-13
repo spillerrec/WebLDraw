@@ -86,20 +86,22 @@ class LDrawFileContent extends LDrawPrimitive{
   
   void parse_subfile(List<String> parts){
     assert(parts.length >= 14);
+    
     LDrawFile sub = new LDrawFile();
     sub.color = int.parse( parts[0] );
-    sub.x = double.parse( parts[1] );
-    sub.y = double.parse( parts[2] );
-    sub.z = double.parse( parts[3] );
-    sub.a = double.parse( parts[4] );
-    sub.b = double.parse( parts[5] );
-    sub.c = double.parse( parts[6] );
-    sub.d = double.parse( parts[7] );
-    sub.e = double.parse( parts[8] );
-    sub.f = double.parse( parts[9] );
-    sub.g = double.parse( parts[10] );
-    sub.h = double.parse( parts[11] );
-    sub.i = double.parse( parts[12] );
+    double x = double.parse( parts[1] );
+    double y = double.parse( parts[2] );
+    double z = double.parse( parts[3] );
+    double a = double.parse( parts[4] );
+    double b = double.parse( parts[5] );
+    double c = double.parse( parts[6] );
+    double d = double.parse( parts[7] );
+    double e = double.parse( parts[8] );
+    double f = double.parse( parts[9] );
+    double g = double.parse( parts[10] );
+    double h = double.parse( parts[11] );
+    double i = double.parse( parts[12] );
+    sub.pos = new Matrix4( a, d, g, 0.0, b, e, h, 0.0, c, f, i, 0.0, x, y, z, 1.0 );
     
     String filepath = parts.sublist(13).join(" ").trim();
     load_ldraw( sub, filepath );
@@ -154,16 +156,11 @@ class LDrawFileContent extends LDrawPrimitive{
 
 class LDrawFile extends LDrawPrimitive{
   int color = 16;
-  double x = 0.0, y = 0.0, z = 0.0;
-  double a = 1.0, b = 0.0, c = 0.0;
-  double d = 0.0, e = 1.0, f = 0.0;
-  double g = 0.0, h = 0.0, i = 1.0;
+  Matrix4 pos = new Matrix4.identity();
   LDrawFileContent content;
 
   void draw( Canvas canvas, LDrawContext context ){
-    Matrix4 pos = new Matrix4(a, d, g, 0.0, b, e, h, 0.0, c, f, i, 0.0, x, y, z, 1.0);
-    pos = context.offset.clone().multiply(pos);
-    content.draw(canvas, new LDrawContext( pos, context.r, context.g, context.b ).update_color(color) );
+    content.draw(canvas, new LDrawContext( context.offset.clone().multiply(pos), context.r, context.g, context.b ).update_color(color) );
   }
 }
 
