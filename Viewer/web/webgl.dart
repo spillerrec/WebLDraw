@@ -102,6 +102,7 @@ class Canvas{
     pMatrix.copyIntoArray( tmpList );
     gl.uniformMatrix4fv( uPMatrix, false, tmpList );
     
+    Stopwatch stopwatch = new Stopwatch()..start();
     if( file != null ){
       Matrix4 offset = new Matrix4.identity();
       offset.translate(1.0, -2.0, -140.0);
@@ -109,6 +110,7 @@ class Canvas{
       offset.rotateY(test*0.5);
       file.draw( this, new LDrawContext( offset, 0.0, 0.0, 0.0 ) );
     }
+    print('Drawing frame took: ${stopwatch.elapsed}');
     
     window.requestAnimationFrame((num time) => update(time));
   }
@@ -118,7 +120,14 @@ class Canvas{
     mvMatrix.copyIntoArray( tmpList );
     gl.uniformMatrix4fv( uMVMatrix, false, tmpList );
   }
-  void setColor( double r, double g, double b ) => gl.uniform4f( aColor, r, g, b, 1.0 );
+  
+  double old_r = 0.0, old_g = 0.0, old_b = 0.0;
+  void setColor( double r, double g, double b ){
+    if( old_r != r || old_g != g || old_b != b ){
+      old_r = r; old_g = g; old_b = b;
+      gl.uniform4f( aColor, r, g, b, 1.0 );
+    }
+  }
 
   
   void draw_lines( Float32List vertices, int amount ){
@@ -130,6 +139,11 @@ class Canvas{
     gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
     gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
     gl.drawArrays( TRIANGLE_FAN, 0, amount );
+  }
+  void draw_triangles( Float32List vertices, int amount ){
+    gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
+    gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
+    gl.drawArrays( TRIANGLES, 0, amount );
   }
   
 

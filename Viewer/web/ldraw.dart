@@ -114,6 +114,15 @@ class LDrawFileContent extends LDrawPrimitive{
     line.color = int.parse( parts[0] );
     line.vertices = from_string_list( parts, 1, 6 );
     
+    for(int i=0; i<primitives.length; i++)
+      if( primitives[i] is LDrawLine ){
+        LDrawLine old_line = primitives[i];
+        if( old_line.color == line.color ){
+          old_line.vertices = combine( old_line.vertices, line.vertices );
+          return;
+        }
+      }
+    
     primitives.add(line);
   }
   void parse_triangle(List<String> parts){
@@ -123,14 +132,36 @@ class LDrawFileContent extends LDrawPrimitive{
     tri.color = int.parse( parts[0] );
     tri.vertices = from_string_list( parts, 1, 9 );
     
+    for(int i=0; i<primitives.length; i++)
+      if( primitives[i] is LDrawTriangle ){
+        LDrawTriangle old_tri = primitives[i];
+        if( old_tri.color == tri.color ){
+          old_tri.vertices = combine( old_tri.vertices, tri.vertices );
+          return;
+        }
+      }
+
     primitives.add(tri);
   }
   void parse_quad(List<String> parts){
     assert(parts.length >= 13);
     
-    LDrawQuad quad = new LDrawQuad();
+    LDrawTriangle quad = new LDrawTriangle();
     quad.color = int.parse( parts[0] );
-    quad.vertices = from_string_list( parts, 1, 12 );
+    Float32List arr1 = from_string_list( parts, 1, 9 );
+    Float32List arr2 = from_string_list( parts, 1+3, 9 );
+    for(int i=0; i<3; i++)
+      arr2[i] = arr1[i];
+    quad.vertices = combine( arr1, arr2 );
+
+    for(int i=0; i<primitives.length; i++)
+      if( primitives[i] is LDrawTriangle ){
+        LDrawTriangle old_tri = primitives[i];
+        if( old_tri.color == quad.color ){
+          old_tri.vertices = combine( old_tri.vertices, quad.vertices );
+          return;
+        }
+      }
     
     primitives.add(quad);
   }
@@ -153,6 +184,14 @@ class LDrawFileContent extends LDrawPrimitive{
     primitives.add(opt);
   }
 }
+Float32List combine(Float32List arr1, Float32List arr2){
+  Float32List arr = new Float32List( arr1.length + arr2.length );
+  for(int i=0; i<arr1.length; i++)
+    arr[i] = arr1[i];
+  for(int i=0; i<arr2.length; i++)
+    arr[i+arr1.length] = arr2[i];
+  return arr;
+}
 
 class LDrawFile extends LDrawPrimitive{
   int color = 16;
@@ -160,7 +199,10 @@ class LDrawFile extends LDrawPrimitive{
   LDrawFileContent content;
 
   void draw( Canvas canvas, LDrawContext context ){
-    content.draw(canvas, new LDrawContext( context.offset.clone().multiply(pos), context.r, context.g, context.b ).update_color(color) );
+    Matrix4 new_pos = context.offset.clone().multiply(pos);
+    canvas.move( new_pos );
+    content.draw(canvas, new LDrawContext( new_pos, context.r, context.g, context.b ).update_color(color) );
+    canvas.move( context.offset );
   }
 }
 
@@ -170,9 +212,8 @@ class LDrawLine extends LDrawPrimitive{
 
   void draw( Canvas canvas, LDrawContext context ){
     LDrawContext con = context.update_color(color);
-    canvas.move(context.offset);
     canvas.setColor( con.er, con.eg, con.eb );
-    canvas.draw_lines( vertices, 2 );
+    canvas.draw_lines( vertices, vertices.length ~/ 3 );
   }
 }
 
@@ -182,9 +223,8 @@ class LDrawTriangle extends LDrawPrimitive{
 
   void draw( Canvas canvas, LDrawContext context ){
     LDrawContext con = context.update_color(color);
-    canvas.move(context.offset);
     canvas.setColor( con.r, con.g, con.b );
-    canvas.draw_triangle_fan( vertices, 3 );
+    canvas.draw_triangles( vertices, vertices.length ~/ 3 );
   }
 }
 
@@ -194,7 +234,7 @@ class LDrawQuad extends LDrawPrimitive{
 
   void draw( Canvas canvas, LDrawContext context ){
     LDrawContext con = context.update_color(color);
-    canvas.move(context.offset);
+  //  canvas.move(context.offset);
     canvas.setColor( con.r, con.g, con.b );
     canvas.draw_triangle_fan( vertices, 4 );
   }
