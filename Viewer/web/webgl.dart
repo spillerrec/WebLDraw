@@ -33,8 +33,36 @@ class Canvas{
     print( "Mesh set" );
   }
   
+  bool mouse_active = false;
+  double speed = 0.01, zoomSpeed = 0.1;
+  Point old_pos = new Point( -1.0, -1.0 );
+  double offset_x = 0.0, offset_y = 0.0, zoom = 0.0;
+  void mouseHandler( MouseEvent event ){
+    switch( event.type ){
+      case "mouseup": mouse_active = false; break;
+      case "mousedown": mouse_active = true; break;
+      case "mousemove":
+          if( old_pos.x < 0 )
+            old_pos = event.screen;
+          if( mouse_active ){
+            offset_y += (event.screen.x - old_pos.x)*speed;
+            offset_x += (event.screen.y - old_pos.y)*speed;
+          }
+          old_pos = event.screen;
+        break;
+    }
+  }
+  void wheelHandler( WheelEvent event ){
+    event.preventDefault();
+    zoom += event.wheelDeltaY * zoomSpeed;
+  }
+  
   Canvas( String canvas_selector ){
     canvas = querySelector( canvas_selector );
+    canvas.onMouseDown.listen( mouseHandler );
+    canvas.onMouseUp.listen( mouseHandler );
+    canvas.onMouseWheel.listen( wheelHandler );
+    canvas.onMouseMove.listen( mouseHandler );
 
     //Initialize WebGL
     gl = canvas.getContext3d();
@@ -106,16 +134,16 @@ class Canvas{
     test += 0.01;
     
     //Perspective
-    Matrix4 pMatrix = makePerspectiveMatrix( radians(45.0), canvas.width / canvas.height, 0.1, 500.0 );
+    Matrix4 pMatrix = makePerspectiveMatrix( radians(45.0), canvas.width / canvas.height, 0.1, -zoom + 500 );
     Float32List tmpList = new Float32List(16);
     pMatrix.copyIntoArray( tmpList );
     gl.uniformMatrix4fv( uPMatrix, false, tmpList );
     
     if( meshes != null ){
       Matrix4 offset = new Matrix4.identity();
-      offset.translate(0.0, 0.0, -140.0);
-      offset.rotateX(test);
-      offset.rotateY(test*0.5);
+      offset.translate( 0.0, 0.0, zoom );
+      offset.rotateX( offset_x );
+      offset.rotateY( offset_y );
       move( offset );
       meshes.draw(this);
     }
