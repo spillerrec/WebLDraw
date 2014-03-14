@@ -3,3 +3,5 @@ packages
 .project
 pubspec.lock
 /Viewer/web/ldraw
+*.dart.js*
+*.dart.precompiled.js
