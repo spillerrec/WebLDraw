@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:vector_math/vector_math.dart';
 
 import 'webgl.dart';
+import 'MeshModel.dart';
 
 class LDrawContext{
   Matrix4 offset;
@@ -42,6 +43,9 @@ class LDrawFileContent extends LDrawPrimitive{
 
   void draw( Canvas canvas, LDrawContext context ){
     primitives.forEach( (x) => x.draw( canvas, context ) );
+  }
+  void to_mesh( MeshModel model, LDrawContext context ){
+    primitives.forEach( (x) => x.to_mesh( model, context ) );
   }
   void init(String content){
     try{
@@ -204,6 +208,10 @@ class LDrawFile extends LDrawPrimitive{
     content.draw(canvas, new LDrawContext( new_pos, context.r, context.g, context.b ).update_color(color) );
     canvas.move( context.offset );
   }
+  void to_mesh( MeshModel model, LDrawContext context ){
+    Matrix4 new_pos = context.offset.clone().multiply(pos);
+    content.to_mesh(model, new LDrawContext( new_pos, context.r, context.g, context.b ).update_color(color) );
+  }
 }
 
 class LDrawLine extends LDrawPrimitive{
@@ -214,6 +222,10 @@ class LDrawLine extends LDrawPrimitive{
     LDrawContext con = context.update_color(color);
     canvas.setColor( con.er, con.eg, con.eb );
     canvas.draw_lines( vertices, vertices.length ~/ 3 );
+  }
+  void to_mesh( MeshModel model, LDrawContext context ){
+    LDrawContext con = context.update_color(color);
+    model.add_lines( vertices, con.offset, con.er, con.eg, con.eb );
   }
 }
 
@@ -226,6 +238,10 @@ class LDrawTriangle extends LDrawPrimitive{
     canvas.setColor( con.r, con.g, con.b );
     canvas.draw_triangles( vertices, vertices.length ~/ 3 );
   }
+  void to_mesh( MeshModel model, LDrawContext context ){
+    LDrawContext con = context.update_color(color);
+    model.add_triangle( vertices, con.offset, con.r, con.g, con.b );
+  }
 }
 
 class LDrawQuad extends LDrawPrimitive{
@@ -237,6 +253,9 @@ class LDrawQuad extends LDrawPrimitive{
   //  canvas.move(context.offset);
     canvas.setColor( con.r, con.g, con.b );
     canvas.draw_triangle_fan( vertices, 4 );
+  }
+  void to_mesh( MeshModel model, LDrawContext context ){
+    print( "not implemented" );
   }
 }
 
@@ -251,6 +270,7 @@ class LDrawOptional extends LDrawPrimitive{
 
 abstract class LDrawPrimitive{
   void draw( Canvas canvas, LDrawContext context ){ }//TODO: make it abstract
+  void to_mesh( MeshModel model, LDrawContext context ){ }
 }
 
 void load_ldraw( LDrawFile file, String name ){
@@ -272,12 +292,14 @@ void load_ldraw( LDrawFile file, String name ){
 
 Map<String,LDrawFileContent> cache = new HashMap<String,LDrawFileContent>();
 int loading = 0;
+int total_file_size = 0;
 
 void load_ldraw_list( List<String> names, String name ){
   String try_load = names.removeAt(0);
   HttpRequest.getString( try_load )
   .then((content){
     cache[name].init(content);
+    total_file_size += content.length;
     loading--;
   })
   .catchError((onError){

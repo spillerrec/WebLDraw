@@ -7,6 +7,7 @@ import 'dart:web_gl';
 import 'package:vector_math/vector_math.dart';
 
 import 'ldraw.dart';
+import 'MeshModel.dart';
 
 class Canvas{
   CanvasElement canvas;
@@ -23,6 +24,14 @@ class Canvas{
   Buffer vertexBuffer;
   
   LDrawFile file;
+  
+  MeshModel meshes = new MeshModel();
+  
+  void load_ldraw( LDrawFile file ){
+    file.to_mesh( meshes, new LDrawContext( new Matrix4.identity(), 0.0,0.0,0.0 ) );
+    file = null;
+    print( "Mesh set" );
+  }
   
   Canvas( String canvas_selector ){
     canvas = querySelector( canvas_selector );
@@ -94,7 +103,7 @@ class Canvas{
     gl.viewport( 0,0, canvas.width, canvas.height );
     gl.clear( COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT );
     
-    test += 0.05;
+    test += 0.01;
     
     //Perspective
     Matrix4 pMatrix = makePerspectiveMatrix( radians(45.0), canvas.width / canvas.height, 0.1, 500.0 );
@@ -102,15 +111,14 @@ class Canvas{
     pMatrix.copyIntoArray( tmpList );
     gl.uniformMatrix4fv( uPMatrix, false, tmpList );
     
-    Stopwatch stopwatch = new Stopwatch()..start();
-    if( file != null ){
+    if( meshes != null ){
       Matrix4 offset = new Matrix4.identity();
-      offset.translate(1.0, -2.0, -140.0);
+      offset.translate(0.0, 0.0, -140.0);
       offset.rotateX(test);
       offset.rotateY(test*0.5);
-      file.draw( this, new LDrawContext( offset, 0.0, 0.0, 0.0 ) );
+      move( offset );
+      meshes.draw(this);
     }
-    print('Drawing frame took: ${stopwatch.elapsed}');
     
     window.requestAnimationFrame((num time) => update(time));
   }

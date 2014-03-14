@@ -11,7 +11,7 @@ void main() {
 Canvas canvas;
 
 void load_file() {
-  HttpRequest.getString('6speed.new.ldr')
+  HttpRequest.getString('6speed.ldr')
 //  HttpRequest.getString('pin.ldr')
 //  HttpRequest.getString('colors.ldr')
 //  HttpRequest.getString('ldraw/p/axle.dat') //Fails to load!
@@ -23,7 +23,7 @@ void process_ldraw(String content){
   LDrawFile file = new LDrawFile();
   file.content = new LDrawFileContent();
   file.content.init(content);
-  Timer timer = new Timer( const Duration(seconds:1), () => canvas.file = file);
+  Timer timer = new Timer( const Duration(seconds:5), (){ canvas.load_ldraw(file); print( "File size in total: ${total_file_size} bytes"); });
 }
 
 
