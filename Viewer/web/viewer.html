@@ -7,12 +7,13 @@
     <link rel="stylesheet" href="viewer.css">
   </head>
   <body>
-    <h1>Viewer</h1>
+    <h1>WebLDraw example</h1>
     
-    <p>Hello world from Dart!</p>
-    
-    <div id="sample_container_id">
-      <canvas id="canvas" width=600 height=400 ></canvas>
+    <div class="webldraw" data-file="6speed.ldr">
+      <canvas width=600 height=400 >No webgl</canvas>
+    </div>
+    <div class="webldraw" data-file="pin.ldr">
+      <canvas width=600 height=400 >No webgl</canvas>
     </div>
 
     <script type="application/dart" src="viewer.dart"></script>

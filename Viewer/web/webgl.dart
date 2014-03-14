@@ -57,8 +57,8 @@ class Canvas{
     zoom += event.wheelDeltaY * zoomSpeed;
   }
   
-  Canvas( String canvas_selector ){
-    canvas = querySelector( canvas_selector );
+  Canvas( CanvasElement canvas ){
+    this.canvas = canvas;
     canvas.onMouseDown.listen( mouseHandler );
     canvas.onMouseUp.listen( mouseHandler );
     canvas.onMouseWheel.listen( wheelHandler );
