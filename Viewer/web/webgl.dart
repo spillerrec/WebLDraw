@@ -25,7 +25,7 @@ class Canvas{
   MeshModel meshes = new MeshModel();
   
   void load_ldraw( LDrawFile file ){
-    file.to_mesh( meshes, new LDrawContext( new Matrix4.identity(), 0.0,0.0,0.0 ) );
+    file.to_mesh( meshes, new LDrawContext() );
     zoom = meshes.center()*3; //TODO: fix random constant
     //TODO: cleanup memory
   }

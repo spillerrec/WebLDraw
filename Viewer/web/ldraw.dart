@@ -7,40 +7,89 @@ import 'package:vector_math/vector_math.dart';
 import 'MeshModel.dart';
 import 'LDrawLoader.dart';
 
-class LDrawContext{
-  Matrix4 offset;
-  double r, g, b; //Main color
-  double er, eg, eb; //Secondary color
+class LDrawColor{
+  int r, g, b; //Main color
+  int er, eg, eb; //Edge color
+  int alpha = 255;
+  //Not supported:
+  //Luminance
+  //Materials
   
-  LDrawContext( Matrix4 offset, double r, double g, double b ){
-    this.offset = offset.clone();
-    this.r = r;
-    this.g = g;
-    this.b = b;
-    er = 0x33/255;
-    eb = 0x33/255;
-    eg = 0x33/255;
-    //TODO: does Dart have some smart syntax for this?
+  LDrawColor( this.r, this.g, this.b, this.er, this.eg, this.eb, [this.alpha] );
+}
+class LDrawColorIndex{
+  //TODO: this makes new colors work for the entire file, we only want it for the remaining of the file!
+  Map<int,LDrawColor> colors = new Map<int,LDrawColor>();
+  LDrawColorIndex(){
+    colors = new Map<int,LDrawColor>();
   }
   
-  LDrawContext update_color( int code ){
-    LDrawContext sub = new LDrawContext( offset, r,g,b );
-    switch( code ){
-      case 16: break; //Do nothing, use main color
-      case 24: break; //TODO: !
-      case 4: sub.r=0xC9/255; sub.g=0x1A/255; sub.b=0x09/255; break; 
-      case 0: sub.r=0x00/255; sub.g=0x00/255; sub.b=0x00/255; break; 
-      case 7: sub.r=0x9B/255; sub.g=0xA1/255; sub.b=0x9D/255; break; 
-    }
-    return sub;
+  LDrawColorIndex combine( LDrawColorIndex parent ){
+    LDrawColorIndex combined = new LDrawColorIndex();
+    combined.colors.addAll(parent.colors);
+    combined.colors.addAll(colors);
+    return combined;
+  }
+  
+  LDrawColor lookUp( int index ){
+    if( colors.containsKey( index ) )
+      return colors[index];
+    else
+      return colors[0]; //Note: black must be defined
+      //TODO: throw exception instead?
+  }
+  
+  LDrawColorIndex.officialColors(){
+    colors = {
+        00: new LDrawColor( 0x00, 0x00, 0x00, 0x3F, 0x47, 0x4C )
+      , 04: new LDrawColor( 0xC9, 0x1A, 0x09, 0xD5, 0x1A, 0x09 )
+      , 07: new LDrawColor( 0x9B, 0xA1, 0x9D, 0x75, 0x7B, 0x7C )
+      , 39: new LDrawColor( 0xC1, 0xDF, 0xF0, 0x85, 0xA3, 0xB4, 128 )
+      };
+  }
+}
+
+class LDrawColorId{
+  int code = 16;
+  LDrawColorId();
+  LDrawColorId.parse( String part ){
+    code = int.parse( part );
+    //TODO: support rgb definition
+  }
+}
+
+class LDrawContext{
+  LDrawColorIndex index = new LDrawColorIndex.officialColors();
+  Matrix4 offset = new Matrix4.identity();
+  LDrawColor color;
+  
+  LDrawContext(){
+    color = index.lookUp(0);
+  }
+  LDrawContext.subpart( LDrawContext context, this.color, this.offset ){
+    index = context.index;
+  }
+  LDrawContext.subfile( LDrawContext context, LDrawColorIndex index ){
+    offset = context.offset;
+    color = context.color;
+    this.index = index.combine( context.index );
+  }
+  
+  LDrawColor lookUp( LDrawColorId color_id ){
+    if( color_id.code == 16 || color_id.code == 24 )
+      return color;
+    else
+      return index.lookUp( color_id.code );
   }
 }
 
 class LDrawFileContent extends LDrawPrimitive{
+  LDrawColorIndex color_index = new LDrawColorIndex();
   List<LDrawPrimitive> primitives = new List<LDrawPrimitive>();
 
   void to_mesh( MeshModel model, LDrawContext context ){
-    primitives.forEach( (x) => x.to_mesh( model, context ) );
+    LDrawContext new_context = new LDrawContext.subfile( context, color_index );
+    primitives.forEach( (x) => x.to_mesh( model, new_context ) );
   }
   void init( String content, LDrawLoader loader ){
     try{
@@ -87,7 +136,7 @@ class LDrawFileContent extends LDrawPrimitive{
     assert(parts.length >= 14);
     
     LDrawFile sub = new LDrawFile();
-    sub.color = int.parse( parts[0] );
+    sub.color = new LDrawColorId.parse( parts[0] );
     double x = double.parse( parts[1] );
     double y = double.parse( parts[2] );
     double z = double.parse( parts[3] );
@@ -110,7 +159,7 @@ class LDrawFileContent extends LDrawPrimitive{
     assert(parts.length >= 7);
     
     LDrawLine line = new LDrawLine();
-    line.color = int.parse( parts[0] );
+    line.color = new LDrawColorId.parse( parts[0] );
     line.vertices = from_string_list( parts, 1, 6 );
     
     for(int i=0; i<primitives.length; i++)
@@ -128,7 +177,7 @@ class LDrawFileContent extends LDrawPrimitive{
     assert(parts.length >= 10);
     
     LDrawTriangle tri = new LDrawTriangle();
-    tri.color = int.parse( parts[0] );
+    tri.color = new LDrawColorId.parse( parts[0] );
     tri.vertices = from_string_list( parts, 1, 9 );
 
     primitives.add(tri);
@@ -137,7 +186,7 @@ class LDrawFileContent extends LDrawPrimitive{
     assert(parts.length >= 13);
     
     LDrawTriangle quad = new LDrawTriangle();
-    quad.color = int.parse( parts[0] );
+    quad.color = new LDrawColorId.parse( parts[0] );
     Float32List arr1 = from_string_list( parts, 1, 9 );
     Float32List arr2 = from_string_list( parts, 1+3, 9 );
     for(int i=0; i<3; i++)
@@ -175,33 +224,33 @@ Float32List combine(Float32List arr1, Float32List arr2){
 }
 
 class LDrawFile extends LDrawPrimitive{
-  int color = 16;
+  LDrawColorId color = new LDrawColorId();
   Matrix4 pos = new Matrix4.identity();
   LDrawFileContent content;
 
   void to_mesh( MeshModel model, LDrawContext context ){
     Matrix4 new_pos = context.offset.clone().multiply(pos);
-    content.to_mesh(model, new LDrawContext( new_pos, context.r, context.g, context.b ).update_color(color) );
+    content.to_mesh( model, new LDrawContext.subpart( context, context.lookUp(color), new_pos ) );
   }
 }
 
 class LDrawLine extends LDrawPrimitive{
-  int color = 16;
+  LDrawColorId color;
   Float32List vertices;
 
   void to_mesh( MeshModel model, LDrawContext context ){
-    LDrawContext con = context.update_color(color);
-    model.add_lines( vertices, con.offset, con.er, con.eg, con.eb );
+    LDrawColor c = context.lookUp( color );
+    model.add_lines( vertices, context.offset, c.er/255, c.eg/255, c.eb/255 );
   }
 }
 
 class LDrawTriangle extends LDrawPrimitive{
-  int color = 16;
+  LDrawColorId color;
   Float32List vertices;
 
   void to_mesh( MeshModel model, LDrawContext context ){
-    LDrawContext con = context.update_color(color);
-    model.add_triangle( vertices, con.offset, con.r, con.g, con.b );
+    LDrawColor c = context.lookUp( color );
+    model.add_triangle( vertices, context.offset, c.r/255, c.g/255, c.b/255 );
   }
 }
 
