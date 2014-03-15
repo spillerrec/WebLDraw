@@ -26,12 +26,14 @@ class Canvas{
   
   void load_ldraw( LDrawFile file ){
     file.to_mesh( meshes, new LDrawContext( new Matrix4.identity(), 0.0,0.0,0.0 ) );
+    zoom = meshes.center()*3; //TODO: fix random constant
+    //TODO: cleanup memory
   }
   
   bool mouse_active = false;
   double speed = 0.01, zoomSpeed = 0.1;
   Point old_pos = new Point( -1.0, -1.0 );
-  double offset_x = 0.0, offset_y = 0.0, zoom = 0.0;
+  double offset_x = radians(180.0+15), offset_y = radians(-45.0), zoom = 0.0;
   void mouseHandler( MouseEvent event ){
     switch( event.type ){
       case "mouseup": mouse_active = false; break;

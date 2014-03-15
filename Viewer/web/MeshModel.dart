@@ -1,6 +1,7 @@
 library MESH;
 
 import 'dart:typed_data';
+import 'dart:math';
 
 import 'package:vector_math/vector_math.dart';
 
@@ -64,6 +65,46 @@ class MeshModel{
   void draw(Canvas canvas){
     lines.values.forEach((f) => f.draw(canvas));
     triangles.values.forEach((f) => f.draw(canvas));
+  }
+  
+  void offset( double dx, double dy, double dz ){
+    //TODO: we need a way to reuse these functions
+    lines.values.forEach( (f){
+      for( int i=0; i<f.vertices.length ~/ 3 * 3; i+=3 ){
+        f.vertices[i] -= dx;
+        f.vertices[i+1] -= dy;
+        f.vertices[i+2] -= dz;
+      }
+    });
+    triangles.values.forEach( (f){
+      for( int i=0; i<f.vertices.length ~/ 3 * 3; i+=3 ){
+        f.vertices[i] -= dx;
+        f.vertices[i+1] -= dy;
+        f.vertices[i+2] -= dz;
+      }
+    });
+  }
+  
+  double center(){
+    double min_x = double.MAX_FINITE, min_y = min_x, min_z = min_y;
+    double max_x = -double.MAX_FINITE, max_y = max_x, max_z = max_y;
+
+    //NOTE: We could do it for Lines as well, but it isn't really nessasary
+    triangles.values.forEach((f){
+      for( int i=0; i<f.vertices.length ~/ 3 * 3; i+=3 ){
+        min_x = min( min_x, f.vertices[i] );
+        min_y = min( min_y, f.vertices[i+1] );
+        min_z = min( min_z, f.vertices[i+2] );
+        max_x = max( max_x, f.vertices[i] );
+        max_y = max( max_y, f.vertices[i+1] );
+        max_z = max( max_z, f.vertices[i+2] );
+      }
+    });
+    
+    print( "Min: $min_x, $min_y, $min_z" );
+    print( "Max: $max_x, $max_y, $max_z" );
+    offset( (max_x-min_x)/2+min_x, (max_y-min_y)/2+min_y, (max_z-min_z)/2+min_z );
+    return min( min_z, min( min_y, min_x ) );
   }
   
   List<double> move( List<double> data, Matrix4 offset ){
