@@ -1,12 +1,11 @@
 library LDRAW;
 
-import 'dart:collection';
-import 'dart:html';
 import 'dart:typed_data';
 
 import 'package:vector_math/vector_math.dart';
 
 import 'MeshModel.dart';
+import 'LDrawLoader.dart';
 
 class LDrawContext{
   Matrix4 offset;
@@ -43,7 +42,7 @@ class LDrawFileContent extends LDrawPrimitive{
   void to_mesh( MeshModel model, LDrawContext context ){
     primitives.forEach( (x) => x.to_mesh( model, context ) );
   }
-  void init(String content){
+  void init( String content, LDrawLoader loader ){
     try{
     List<String> lines = content.split("\n");
     lines.removeWhere((test)=>test.isEmpty);
@@ -54,7 +53,7 @@ class LDrawFileContent extends LDrawPrimitive{
       if( parts.length > 0 )
          switch( parts.removeAt(0) ){
            case '0': parse_comment(parts); break;
-           case '1': parse_subfile(parts); break;
+           case '1': parse_subfile(parts,loader); break;
            case '2': parse_line(parts); break;
            case '3': parse_triangle(parts); break;
            case '4': parse_quad(parts); break;
@@ -84,7 +83,7 @@ class LDrawFileContent extends LDrawPrimitive{
       }
   }
   
-  void parse_subfile(List<String> parts){
+  void parse_subfile( List<String> parts, LDrawLoader loader ){
     assert(parts.length >= 14);
     
     LDrawFile sub = new LDrawFile();
@@ -104,7 +103,7 @@ class LDrawFileContent extends LDrawPrimitive{
     sub.pos = new Matrix4( a, d, g, 0.0, b, e, h, 0.0, c, f, i, 0.0, x, y, z, 1.0 );
     
     String filepath = parts.sublist(13).join(" ").trim();
-    load_ldraw( sub, filepath );
+    loader.load_file( sub, filepath );
     primitives.add(sub);
   }
   void parse_line(List<String> parts){
@@ -226,43 +225,4 @@ class LDrawOptional extends LDrawPrimitive{
 
 abstract class LDrawPrimitive{
   void to_mesh( MeshModel model, LDrawContext context ){ }
-}
-
-void load_ldraw( LDrawFile file, String name ){
-  if( cache[name] != null ){
-    file.content = cache[name];
-    return;
-  }
-  
-  loading++;
-  List<String> names = new List<String>();
-  cache[name] = new LDrawFileContent();
-  file.content = cache[name];
-  //names.add( name );
-  names.add( "ldraw/parts/" + name );
-  names.add( "ldraw/p/" + name );
-  //names.add( "ldraw/models/" + name );
-  load_ldraw_list( names, name );
-}
-
-Map<String,LDrawFileContent> cache = new HashMap<String,LDrawFileContent>();
-int loading = 0;
-int total_file_size = 0;
-
-void load_ldraw_list( List<String> names, String name ){
-  String try_load = names.removeAt(0);
-  HttpRequest.getString( try_load )
-  .then((content){
-    cache[name].init(content);
-    total_file_size += content.length;
-    loading--;
-  })
-  .catchError((onError){
-    if( names.length > 0 )
-      load_ldraw_list( names, name );
-    else{
-      print( "Could not retrive file: " + name + " :\\" );
-      loading--;
-    }
-  });
 }

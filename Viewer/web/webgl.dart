@@ -26,7 +26,6 @@ class Canvas{
   
   void load_ldraw( LDrawFile file ){
     file.to_mesh( meshes, new LDrawContext( new Matrix4.identity(), 0.0,0.0,0.0 ) );
-    print( "Mesh set" );
   }
   
   bool mouse_active = false;
