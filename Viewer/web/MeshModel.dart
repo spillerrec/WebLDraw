@@ -101,8 +101,6 @@ class MeshModel{
       }
     });
     
-    print( "Min: $min_x, $min_y, $min_z" );
-    print( "Max: $max_x, $max_y, $max_z" );
     offset( (max_x-min_x)/2+min_x, (max_y-min_y)/2+min_y, (max_z-min_z)/2+min_z );
     return min( min_z, min( min_y, min_x ) );
   }

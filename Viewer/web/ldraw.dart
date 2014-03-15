@@ -77,8 +77,8 @@ class LDrawFileContent extends LDrawPrimitive{
   void parse_comment(List<String> parts){
     if( parts.length > 0 )
       switch( parts[0] ){
-        case "STEP": print("step"); break;
-        case "ROTATION": print("rotation"); break;
+        case "STEP": break;
+        case "ROTATION": break;
         //default: print("comment");
       }
   }

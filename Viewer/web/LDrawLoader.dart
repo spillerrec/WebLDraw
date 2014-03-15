@@ -28,8 +28,9 @@ class LDrawLoader{
       cache[filename] = load.content;
       files_needed++;
 
-      List<String> names = [ "ldraw/parts/" + filename, "ldraw/p/" + filename ];
-      names.insert( 0, filename );
+      List<String> names = [ "ldraw/parts/" + filename, "ldraw/p/" + filename, "ldraw/model/ + filename" ];
+      if( local )
+        names.insert( 0, filename );
       load_ldraw_list( names, filename );
     }
   }
