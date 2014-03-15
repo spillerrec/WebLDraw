@@ -17,19 +17,15 @@ class Canvas{
   UniformLocation uMVMatrix;
   int aVertexPosition;
   UniformLocation aColor;
-  double test = 0.0;
   
   Program shaderProgram;
   
   Buffer vertexBuffer;
   
-  LDrawFile file;
-  
   MeshModel meshes = new MeshModel();
   
   void load_ldraw( LDrawFile file ){
     file.to_mesh( meshes, new LDrawContext( new Matrix4.identity(), 0.0,0.0,0.0 ) );
-    file = null;
     print( "Mesh set" );
   }
   
@@ -55,6 +51,7 @@ class Canvas{
   void wheelHandler( WheelEvent event ){
     event.preventDefault();
     zoom += event.wheelDeltaY * zoomSpeed;
+    //TODO: we want wheelDeltaY, but it appears to be broken in dart2js
   }
   
   Canvas( CanvasElement canvas ){
@@ -131,22 +128,19 @@ class Canvas{
     gl.viewport( 0,0, canvas.width, canvas.height );
     gl.clear( COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT );
     
-    test += 0.01;
-    
     //Perspective
     Matrix4 pMatrix = makePerspectiveMatrix( radians(45.0), canvas.width / canvas.height, 0.1, -zoom + 500 );
     Float32List tmpList = new Float32List(16);
     pMatrix.copyIntoArray( tmpList );
     gl.uniformMatrix4fv( uPMatrix, false, tmpList );
     
-    if( meshes != null ){
-      Matrix4 offset = new Matrix4.identity();
-      offset.translate( 0.0, 0.0, zoom );
-      offset.rotateX( offset_x );
-      offset.rotateY( offset_y );
-      move( offset );
-      meshes.draw(this);
-    }
+    //Set rotation/zoom
+    Matrix4 offset = new Matrix4.identity();
+    offset.translate( 0.0, 0.0, zoom );
+    offset.rotateX( offset_x );
+    offset.rotateY( offset_y );
+    move( offset );
+    meshes.draw(this);
     
     window.requestAnimationFrame((num time) => update(time));
   }
@@ -170,11 +164,6 @@ class Canvas{
     gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
     gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
     gl.drawArrays( LINES, 0, amount );
-  }
-  void draw_triangle_fan( Float32List vertices, int amount ){
-    gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );
-    gl.vertexAttribPointer( aVertexPosition, 3, FLOAT, false, 0, 0 );
-    gl.drawArrays( TRIANGLE_FAN, 0, amount );
   }
   void draw_triangles( Float32List vertices, int amount ){
     gl.bufferDataTyped( ARRAY_BUFFER, vertices, STATIC_DRAW );

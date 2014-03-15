@@ -6,7 +6,6 @@ import 'dart:typed_data';
 
 import 'package:vector_math/vector_math.dart';
 
-import 'webgl.dart';
 import 'MeshModel.dart';
 
 class LDrawContext{
@@ -41,9 +40,6 @@ class LDrawContext{
 class LDrawFileContent extends LDrawPrimitive{
   List<LDrawPrimitive> primitives = new List<LDrawPrimitive>();
 
-  void draw( Canvas canvas, LDrawContext context ){
-    primitives.forEach( (x) => x.draw( canvas, context ) );
-  }
   void to_mesh( MeshModel model, LDrawContext context ){
     primitives.forEach( (x) => x.to_mesh( model, context ) );
   }
@@ -135,15 +131,6 @@ class LDrawFileContent extends LDrawPrimitive{
     LDrawTriangle tri = new LDrawTriangle();
     tri.color = int.parse( parts[0] );
     tri.vertices = from_string_list( parts, 1, 9 );
-    
-    for(int i=0; i<primitives.length; i++)
-      if( primitives[i] is LDrawTriangle ){
-        LDrawTriangle old_tri = primitives[i];
-        if( old_tri.color == tri.color ){
-          old_tri.vertices = combine( old_tri.vertices, tri.vertices );
-          return;
-        }
-      }
 
     primitives.add(tri);
   }
@@ -157,15 +144,6 @@ class LDrawFileContent extends LDrawPrimitive{
     for(int i=0; i<3; i++)
       arr2[i] = arr1[i];
     quad.vertices = combine( arr1, arr2 );
-
-    for(int i=0; i<primitives.length; i++)
-      if( primitives[i] is LDrawTriangle ){
-        LDrawTriangle old_tri = primitives[i];
-        if( old_tri.color == quad.color ){
-          old_tri.vertices = combine( old_tri.vertices, quad.vertices );
-          return;
-        }
-      }
     
     primitives.add(quad);
   }
@@ -202,12 +180,6 @@ class LDrawFile extends LDrawPrimitive{
   Matrix4 pos = new Matrix4.identity();
   LDrawFileContent content;
 
-  void draw( Canvas canvas, LDrawContext context ){
-    Matrix4 new_pos = context.offset.clone().multiply(pos);
-    canvas.move( new_pos );
-    content.draw(canvas, new LDrawContext( new_pos, context.r, context.g, context.b ).update_color(color) );
-    canvas.move( context.offset );
-  }
   void to_mesh( MeshModel model, LDrawContext context ){
     Matrix4 new_pos = context.offset.clone().multiply(pos);
     content.to_mesh(model, new LDrawContext( new_pos, context.r, context.g, context.b ).update_color(color) );
@@ -218,11 +190,6 @@ class LDrawLine extends LDrawPrimitive{
   int color = 16;
   Float32List vertices;
 
-  void draw( Canvas canvas, LDrawContext context ){
-    LDrawContext con = context.update_color(color);
-    canvas.setColor( con.er, con.eg, con.eb );
-    canvas.draw_lines( vertices, vertices.length ~/ 3 );
-  }
   void to_mesh( MeshModel model, LDrawContext context ){
     LDrawContext con = context.update_color(color);
     model.add_lines( vertices, con.offset, con.er, con.eg, con.eb );
@@ -233,11 +200,6 @@ class LDrawTriangle extends LDrawPrimitive{
   int color = 16;
   Float32List vertices;
 
-  void draw( Canvas canvas, LDrawContext context ){
-    LDrawContext con = context.update_color(color);
-    canvas.setColor( con.r, con.g, con.b );
-    canvas.draw_triangles( vertices, vertices.length ~/ 3 );
-  }
   void to_mesh( MeshModel model, LDrawContext context ){
     LDrawContext con = context.update_color(color);
     model.add_triangle( vertices, con.offset, con.r, con.g, con.b );
@@ -248,12 +210,6 @@ class LDrawQuad extends LDrawPrimitive{
   int color = 16;
   Float32List vertices;
 
-  void draw( Canvas canvas, LDrawContext context ){
-    LDrawContext con = context.update_color(color);
-  //  canvas.move(context.offset);
-    canvas.setColor( con.r, con.g, con.b );
-    canvas.draw_triangle_fan( vertices, 4 );
-  }
   void to_mesh( MeshModel model, LDrawContext context ){
     print( "not implemented" );
   }
@@ -269,7 +225,6 @@ class LDrawOptional extends LDrawPrimitive{
 }
 
 abstract class LDrawPrimitive{
-  void draw( Canvas canvas, LDrawContext context ){ }//TODO: make it abstract
   void to_mesh( MeshModel model, LDrawContext context ){ }
 }
 
