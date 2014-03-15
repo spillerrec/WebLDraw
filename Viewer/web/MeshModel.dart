@@ -15,7 +15,7 @@ class ColorBin<T>{
 class MeshColor{
   double r,g,b,a;
   MeshColor( this.r, this.g, this.b, this.a );
-  void draw( Canvas canvas ) => canvas.setColor( r, g, b );
+  void draw( Canvas canvas ) => canvas.setColor( r, g, b,a );
   
   operator ==(MeshColor other){
     return r == other.r && g == other.g && b == other.b && a == other.a;
@@ -116,15 +116,15 @@ class MeshModel{
     return data;
   }
 
-  void add_triangle( Float32List vertices, Matrix4 offset, double r, double g, double b ){
-    MeshColor color = new MeshColor( r, g, b, 1.0 );
+  void add_triangle( Float32List vertices, Matrix4 offset, double r, double g, double b, double a ){
+    MeshColor color = new MeshColor( r, g, b, a );
     List<double> data = move( vertices.toList(), offset );
     MeshTriangles tri = triangles.putIfAbsent(color, () => new MeshTriangles(color));
     tri.vertices.addAll(data);
     tri.compiled = null;
   }
-  void add_lines( Float32List vertices, Matrix4 offset, double r, double g, double b ){
-    MeshColor color = new MeshColor( r, g, b, 1.0 );
+  void add_lines( Float32List vertices, Matrix4 offset, double r, double g, double b, double a ){
+    MeshColor color = new MeshColor( r, g, b, a );
     List<double> data = move( vertices.toList(), offset );
     MeshLines line = lines.putIfAbsent(color, () => new MeshLines(color));
     line.vertices.addAll(data);

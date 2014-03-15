@@ -122,6 +122,9 @@ class Canvas{
     aColor = gl.getUniformLocation( shaderProgram, "aColor" );
     
     window.requestAnimationFrame((num time) => update(time));
+    
+    gl.enable( BLEND );
+    gl.blendFunc( SRC_ALPHA, ONE_MINUS_SRC_ALPHA );
   }
   
   void update(num time){
@@ -152,11 +155,11 @@ class Canvas{
     gl.uniformMatrix4fv( uMVMatrix, false, tmpList );
   }
   
-  double old_r = 0.0, old_g = 0.0, old_b = 0.0;
-  void setColor( double r, double g, double b ){
-    if( old_r != r || old_g != g || old_b != b ){
-      old_r = r; old_g = g; old_b = b;
-      gl.uniform4f( aColor, r, g, b, 1.0 );
+  double old_r = 0.0, old_g = 0.0, old_b = 0.0, old_a = 0.0;
+  void setColor( double r, double g, double b, double a ){
+    if( old_r != r || old_g != g || old_b != b || old_a != a ){
+      old_r = r; old_g = g; old_b = b; old_a = a;
+      gl.uniform4f( aColor, r, g, b, a );
     }
   }
 

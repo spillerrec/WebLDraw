@@ -15,7 +15,7 @@ class LDrawColor{
   //Luminance
   //Materials
   
-  LDrawColor( this.r, this.g, this.b, this.er, this.eg, this.eb, [this.alpha] );
+  LDrawColor( this.r, this.g, this.b, this.er, this.eg, this.eb, [this.alpha=255] );
 }
 class LDrawColorIndex{
   //TODO: this makes new colors work for the entire file, we only want it for the remaining of the file!
@@ -44,7 +44,7 @@ class LDrawColorIndex{
         00: new LDrawColor( 0x00, 0x00, 0x00, 0x3F, 0x47, 0x4C )
       , 04: new LDrawColor( 0xC9, 0x1A, 0x09, 0xD5, 0x1A, 0x09 )
       , 07: new LDrawColor( 0x9B, 0xA1, 0x9D, 0x75, 0x7B, 0x7C )
-      , 39: new LDrawColor( 0xC1, 0xDF, 0xF0, 0x85, 0xA3, 0xB4, 128 )
+      , 39: new LDrawColor( 0xC1, 0xDF, 0xF0, 0x85, 0xA3, 0xB4, 64 )
       };
   }
 }
@@ -240,7 +240,7 @@ class LDrawLine extends LDrawPrimitive{
 
   void to_mesh( MeshModel model, LDrawContext context ){
     LDrawColor c = context.lookUp( color );
-    model.add_lines( vertices, context.offset, c.er/255, c.eg/255, c.eb/255 );
+    model.add_lines( vertices, context.offset, c.er/255, c.eg/255, c.eb/255, c.alpha/255 );
   }
 }
 
@@ -250,7 +250,7 @@ class LDrawTriangle extends LDrawPrimitive{
 
   void to_mesh( MeshModel model, LDrawContext context ){
     LDrawColor c = context.lookUp( color );
-    model.add_triangle( vertices, context.offset, c.r/255, c.g/255, c.b/255 );
+    model.add_triangle( vertices, context.offset, c.r/255, c.g/255, c.b/255, c.alpha/255 );
   }
 }
 
