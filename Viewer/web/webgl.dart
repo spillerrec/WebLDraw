@@ -1,6 +1,7 @@
 library GRAPHICS;
 
 import 'dart:html';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:web_gl';
 
@@ -32,29 +33,44 @@ class Canvas{
     requestUpdate();
   }
   
-  bool mouse_active = false;
+  int mouse_active = -1;
   double speed = 0.01, zoomSpeed = 0.1;
-  Point old_pos = new Point( -1.0, -1.0 );
+  Point old_pos = new Point( 0.0, 0.0 );
   double offset_x = radians(180.0+15), offset_y = radians(-45.0), zoom = 0.0;
   void mouseHandler( MouseEvent event ){
     switch( event.type ){
-      case "mouseup": mouse_active = false; break;
-      case "mousedown": mouse_active = true; break;
-      case "mousemove":
-          if( old_pos.x < 0 )
-            old_pos = event.screen;
-          if( mouse_active ){
-            offset_y += (event.screen.x - old_pos.x)*speed;
-            offset_x += (event.screen.y - old_pos.y)*speed;
-            requestUpdate();
-          }
+      case "mouseup": mouse_active = -1; event.preventDefault(); break;
+      case "mousedown":
           old_pos = event.screen;
+          mouse_active = event.button;
+          event.preventDefault(); //Prevents 'move' action on middle-click
+        break;
+      case "mousemove":
+          if( mouse_active != -1 ){
+            switch( mouse_active ){
+              case 0: //Rotate
+                  offset_y += (event.screen.x - old_pos.x)*speed;
+                  offset_x += (event.screen.y - old_pos.y)*speed;
+                break;
+              case 1: //Move
+                  //TODO: move object
+                break;
+              case 2: //Zoom
+                  Point difference = event.screen - old_pos; 
+                  int direction = difference.y > 0 ? 2 : -2;
+                  zoom += difference.magnitude * direction;
+                break;
+            }
+            requestUpdate();
+            old_pos = event.screen;
+          }
         break;
     }
   }
   void wheelHandler( WheelEvent event ){
     event.preventDefault();
     zoom += event.wheelDeltaY * zoomSpeed;
+    requestUpdate();
     //TODO: we want wheelDeltaY, but it appears to be broken in dart2js
   }
   
@@ -64,6 +80,8 @@ class Canvas{
     window.onMouseUp.listen( mouseHandler );
     canvas.onMouseWheel.listen( wheelHandler );
     window.onMouseMove.listen( mouseHandler );
+    canvas.onContextMenu.listen( (e) => e.preventDefault() ); //Disable right-click menu
+    //TODO: only disable when dragging!
 
     //Initialize WebGL
     gl = canvas.getContext3d();
