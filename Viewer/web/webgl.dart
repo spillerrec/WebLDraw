@@ -34,9 +34,10 @@ class Canvas{
   }
   
   int mouse_active = -1;
-  double speed = 0.01, zoomSpeed = 0.1;
+  double move_speed = 1.0, rotate_speed = 0.01, zoomSpeed = 0.1;
   Point old_pos = new Point( 0.0, 0.0 );
-  double offset_x = radians(180.0+15), offset_y = radians(-45.0), zoom = 0.0;
+  double rotation_x = radians(180.0+15), rotation_y = radians(-45.0), zoom = 0.0;
+  double offset_x = 0.0, offset_y = 0.0;
   void mouseHandler( MouseEvent event ){
     switch( event.type ){
       case "mouseup": mouse_active = -1; event.preventDefault(); break;
@@ -49,11 +50,12 @@ class Canvas{
           if( mouse_active != -1 ){
             switch( mouse_active ){
               case 0: //Rotate
-                  offset_y += (event.screen.x - old_pos.x)*speed;
-                  offset_x += (event.screen.y - old_pos.y)*speed;
+                  rotation_y += (event.screen.x - old_pos.x)*rotate_speed;
+                  rotation_x += (event.screen.y - old_pos.y)*rotate_speed;
                 break;
               case 1: //Move
-                  //TODO: move object
+                  offset_x += (event.screen.x - old_pos.x)*move_speed;
+                  offset_y -= (event.screen.y - old_pos.y)*move_speed;
                 break;
               case 2: //Zoom
                   Point difference = event.screen - old_pos; 
@@ -162,9 +164,9 @@ class Canvas{
       
       //Set rotation/zoom
       Matrix4 offset = new Matrix4.identity();
-      offset.translate( 0.0, 0.0, zoom );
-      offset.rotateX( offset_x );
-      offset.rotateY( offset_y );
+      offset.translate( offset_x, offset_y, zoom );
+      offset.rotateX( rotation_x );
+      offset.rotateY( rotation_y );
       move( offset );
       meshes.draw(this);
       
