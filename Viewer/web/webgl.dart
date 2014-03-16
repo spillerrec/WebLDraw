@@ -23,11 +23,13 @@ class Canvas{
   Buffer vertexBuffer;
   
   MeshModel meshes = new MeshModel();
+  bool draw = false;
   
   void load_ldraw( LDrawFile file ){
     file.to_mesh( meshes, new LDrawContext() );
     zoom = meshes.center()*3; //TODO: fix random constant
     //TODO: cleanup memory
+    requestUpdate();
   }
   
   bool mouse_active = false;
@@ -44,6 +46,7 @@ class Canvas{
           if( mouse_active ){
             offset_y += (event.screen.x - old_pos.x)*speed;
             offset_x += (event.screen.y - old_pos.y)*speed;
+            requestUpdate();
           }
           old_pos = event.screen;
         break;
@@ -121,32 +124,40 @@ class Canvas{
     
     aColor = gl.getUniformLocation( shaderProgram, "aColor" );
     
-    window.requestAnimationFrame((num time) => update(time));
-    
     gl.enable( BLEND );
     gl.blendFunc( SRC_ALPHA, ONE_MINUS_SRC_ALPHA );
+    
+    window.requestAnimationFrame( (num time) => update() );
   }
   
-  void update(num time){
-    //Init
-    gl.viewport( 0,0, canvas.width, canvas.height );
-    gl.clear( COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT );
+  void update(){
+    if( draw ){
+      //Init
+      gl.viewport( 0,0, canvas.width, canvas.height );
+      gl.clear( COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT );
+      
+      //Perspective
+      Matrix4 pMatrix = makePerspectiveMatrix( radians(45.0), canvas.width / canvas.height, 0.1, -zoom + 1000 );
+      Float32List tmpList = new Float32List(16);
+      pMatrix.copyIntoArray( tmpList );
+      gl.uniformMatrix4fv( uPMatrix, false, tmpList );
+      
+      //Set rotation/zoom
+      Matrix4 offset = new Matrix4.identity();
+      offset.translate( 0.0, 0.0, zoom );
+      offset.rotateX( offset_x );
+      offset.rotateY( offset_y );
+      move( offset );
+      meshes.draw(this);
+      
+      draw = false;
+    }
     
-    //Perspective
-    Matrix4 pMatrix = makePerspectiveMatrix( radians(45.0), canvas.width / canvas.height, 0.1, -zoom + 1000 );
-    Float32List tmpList = new Float32List(16);
-    pMatrix.copyIntoArray( tmpList );
-    gl.uniformMatrix4fv( uPMatrix, false, tmpList );
-    
-    //Set rotation/zoom
-    Matrix4 offset = new Matrix4.identity();
-    offset.translate( 0.0, 0.0, zoom );
-    offset.rotateX( offset_x );
-    offset.rotateY( offset_y );
-    move( offset );
-    meshes.draw(this);
-    
-    window.requestAnimationFrame((num time) => update(time));
+    window.requestAnimationFrame( (num time) => update() );
+  }
+  
+  void requestUpdate( [bool animate=false] ){
+    this.draw = true;
   }
   
   void move( Matrix4 mvMatrix ){
