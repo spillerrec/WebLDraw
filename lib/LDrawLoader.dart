@@ -56,7 +56,7 @@ class LDrawLoader{
       cache[filename] = load.content;
       files_needed++;
 
-      List<String> names = standardLibraries( filename );
+      List<String> names = standardLibraries( filename.toLowerCase() );
       if( local )
         names.insert( 0, filename );
       
