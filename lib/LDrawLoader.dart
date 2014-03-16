@@ -1,10 +1,4 @@
-library LDRAW_LOADER;
-
-import 'dart:html';
-import 'dart:math' as math;
-
-import 'ldraw.dart';
-import 'viewer.dart';
+part of ldraw;
 
 class LDrawLoader{
   static Map<String,LDrawFileContent> cache = new Map<String,LDrawFileContent>();
@@ -41,9 +35,9 @@ class LDrawLoader{
       p_first = true;
     
     List<String> paths = [
-        "ldraw/parts/" + filename
-      , "ldraw/p/" + filename
-      , "ldraw/models/" + filename
+        "assets/WebLDraw/ldraw/parts/" + filename
+      , "assets/WebLDraw/ldraw/p/" + filename
+      , "assets/WebLDraw/ldraw/models/" + filename
       ];
     
     //Swap 'p/' and 'parts/'

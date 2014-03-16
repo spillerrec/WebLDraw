@@ -1,8 +1,4 @@
-import 'dart:html';
-
-import 'ldraw.dart';
-import 'webgl.dart';
-import 'LDrawLoader.dart';
+part of ldraw;
 
 class LDrawWidget{
   Canvas canvas;
@@ -25,10 +21,3 @@ class LDrawWidget{
     canvas.load_ldraw( file );
   }
 }
-
-void main() {
-  querySelectorAll(".webldraw").forEach( (div){
-    new LDrawWidget( div );
-  });
-}
-

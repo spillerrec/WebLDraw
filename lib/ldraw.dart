@@ -1,11 +1,4 @@
-library LDRAW;
-
-import 'dart:typed_data';
-
-import 'package:vector_math/vector_math.dart';
-
-import 'MeshModel.dart';
-import 'LDrawLoader.dart';
+part of ldraw;
 
 class LDrawColor{
   int r, g, b; //Main color

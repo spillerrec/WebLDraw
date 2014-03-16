@@ -1,6 +1,6 @@
 import 'dart:html';
 
-import 'ldraw.dart';
+import 'package:WebLDraw/ldrawlib.dart';
 
 void main() {
   HttpRequest.getString( 'ldraw/LDConfig.ldr' ).then( (content){

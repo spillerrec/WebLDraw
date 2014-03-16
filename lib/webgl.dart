@@ -1,13 +1,4 @@
-library GRAPHICS;
-
-import 'dart:html';
-import 'dart:typed_data';
-import 'dart:web_gl';
-
-import 'package:vector_math/vector_math.dart';
-
-import 'ldraw.dart';
-import 'MeshModel.dart';
+part of ldraw;
 
 class Canvas{
   CanvasElement canvas;

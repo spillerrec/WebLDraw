@@ -1,0 +1,8 @@
+name: WebLDraw
+version: 0.1.0
+author: Sebastian Wahl
+description: WebGL-based LDraw viewer
+homepage: https://github.com/spillerrec/WebLDraw/
+dependencies:
+  browser: any
+  vector_math: any

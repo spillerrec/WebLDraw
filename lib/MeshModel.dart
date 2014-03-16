@@ -1,11 +1,4 @@
-library MESH;
-
-import 'dart:typed_data';
-import 'dart:math';
-
-import 'package:vector_math/vector_math.dart';
-
-import 'webgl.dart';
+part of ldraw;
 
 class ColorBin<T>{
   int color;
@@ -92,17 +85,17 @@ class MeshModel{
     //NOTE: We could do it for Lines as well, but it isn't really nessasary
     triangles.values.forEach((f){
       for( int i=0; i<f.vertices.length ~/ 3 * 3; i+=3 ){
-        min_x = min( min_x, f.vertices[i] );
-        min_y = min( min_y, f.vertices[i+1] );
-        min_z = min( min_z, f.vertices[i+2] );
-        max_x = max( max_x, f.vertices[i] );
-        max_y = max( max_y, f.vertices[i+1] );
-        max_z = max( max_z, f.vertices[i+2] );
+        min_x = math.min( min_x, f.vertices[i] );
+        min_y = math.min( min_y, f.vertices[i+1] );
+        min_z = math.min( min_z, f.vertices[i+2] );
+        max_x = math.max( max_x, f.vertices[i] );
+        max_y = math.max( max_y, f.vertices[i+1] );
+        max_z = math.max( max_z, f.vertices[i+2] );
       }
     });
     
     offset( (max_x-min_x)/2+min_x, (max_y-min_y)/2+min_y, (max_z-min_z)/2+min_z );
-    return min( min_z, min( min_y, min_x ) );
+    return math.min( min_z, math.min( min_y, min_x ) );
   }
   
   List<double> move( List<double> data, Matrix4 offset ){
