@@ -17,7 +17,7 @@ class LDrawLoader{
   }
   
   bool containsFolder( String path, String folder ){
-    return path.startsWith( folder + "/" ) || path.startsWith( folder + "\\" );
+    return path.startsWith( folder + "/" );
   }
   
   List<String> standardLibraries( String filename ){
@@ -49,6 +49,8 @@ class LDrawLoader{
   
   void load_file( LDrawFile load, [bool local=false] ){
     String filename = load.name;
+    filename = filename.replaceAll( '\\', '/' );
+    
     if( cache.containsKey( filename ) )
       load.content = cache[filename];
     else{
