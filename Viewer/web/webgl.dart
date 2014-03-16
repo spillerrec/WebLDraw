@@ -58,9 +58,9 @@ class Canvas{
   Canvas( CanvasElement canvas ){
     this.canvas = canvas;
     canvas.onMouseDown.listen( mouseHandler );
-    canvas.onMouseUp.listen( mouseHandler );
+    window.onMouseUp.listen( mouseHandler );
     canvas.onMouseWheel.listen( wheelHandler );
-    canvas.onMouseMove.listen( mouseHandler );
+    window.onMouseMove.listen( mouseHandler );
 
     //Initialize WebGL
     gl = canvas.getContext3d();
