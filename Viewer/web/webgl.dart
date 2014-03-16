@@ -133,7 +133,7 @@ class Canvas{
     gl.clear( COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT );
     
     //Perspective
-    Matrix4 pMatrix = makePerspectiveMatrix( radians(45.0), canvas.width / canvas.height, 0.1, -zoom + 500 );
+    Matrix4 pMatrix = makePerspectiveMatrix( radians(45.0), canvas.width / canvas.height, 0.1, -zoom + 1000 );
     Float32List tmpList = new Float32List(16);
     pMatrix.copyIntoArray( tmpList );
     gl.uniformMatrix4fv( uPMatrix, false, tmpList );

@@ -258,19 +258,22 @@ class LDrawFileContent extends LDrawPrimitive{
     //load all files now
     if( files.length > 0 )
       print( files );
-    load_primitives( loader );
+    load_primitives( loader, new Map<String,LDrawFileContent>() );
     }
     catch(object){
       print(object);
     }
   }
-  void load_primitives( LDrawLoader loader ){
+  void load_primitives( LDrawLoader loader, Map<String,LDrawFileContent> parent_files ){
+    Map<String,LDrawFileContent> combined_files = new Map<String,LDrawFileContent>();
+    combined_files.addAll( parent_files );
+    combined_files.addAll( files );
     primitives.forEach( (primi){
         if( primi is LDrawFile ){
           LDrawFile file = primi;
-          if( files.containsKey(file.name)){
-            file.content = files[file.name];
-            file.content.load_primitives( loader );
+          if( combined_files.containsKey(file.name)){
+            file.content = combined_files[file.name];
+            file.content.load_primitives( loader, combined_files );
           }
           else
             loader.load_file( primi );
