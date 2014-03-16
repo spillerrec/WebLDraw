@@ -41,10 +41,152 @@ class LDrawColorIndex{
   
   LDrawColorIndex.officialColors(){
     colors = {
-        00: new LDrawColor( 0x00, 0x00, 0x00, 0x3F, 0x47, 0x4C )
-      , 04: new LDrawColor( 0xC9, 0x1A, 0x09, 0xD5, 0x1A, 0x09 )
-      , 07: new LDrawColor( 0x9B, 0xA1, 0x9D, 0x75, 0x7B, 0x7C )
-      , 39: new LDrawColor( 0xC1, 0xDF, 0xF0, 0x85, 0xA3, 0xB4, 64 )
+0: new LDrawColor( 5, 19, 29, 89, 89, 89, 255 ),
+1: new LDrawColor( 0, 85, 191, 51, 51, 51, 255 ),
+2: new LDrawColor( 37, 122, 62, 51, 51, 51, 255 ),
+3: new LDrawColor( 0, 131, 143, 51, 51, 51, 255 ),
+4: new LDrawColor( 201, 26, 9, 51, 51, 51, 255 ),
+5: new LDrawColor( 200, 112, 160, 51, 51, 51, 255 ),
+6: new LDrawColor( 88, 57, 39, 30, 30, 30, 255 ),
+7: new LDrawColor( 155, 161, 157, 51, 51, 51, 255 ),
+8: new LDrawColor( 109, 110, 92, 51, 51, 51, 255 ),
+9: new LDrawColor( 180, 210, 227, 51, 51, 51, 255 ),
+10: new LDrawColor( 75, 159, 74, 51, 51, 51, 255 ),
+11: new LDrawColor( 85, 165, 175, 51, 51, 51, 255 ),
+12: new LDrawColor( 242, 112, 94, 51, 51, 51, 255 ),
+13: new LDrawColor( 252, 151, 172, 51, 51, 51, 255 ),
+14: new LDrawColor( 242, 205, 55, 51, 51, 51, 255 ),
+15: new LDrawColor( 255, 255, 255, 51, 51, 51, 255 ),
+17: new LDrawColor( 194, 218, 184, 51, 51, 51, 255 ),
+18: new LDrawColor( 251, 230, 150, 51, 51, 51, 255 ),
+19: new LDrawColor( 228, 205, 158, 51, 51, 51, 255 ),
+20: new LDrawColor( 201, 202, 226, 51, 51, 51, 255 ),
+22: new LDrawColor( 129, 0, 123, 51, 51, 51, 255 ),
+23: new LDrawColor( 32, 50, 176, 30, 30, 30, 255 ),
+25: new LDrawColor( 254, 138, 24, 51, 51, 51, 255 ),
+26: new LDrawColor( 146, 57, 120, 51, 51, 51, 255 ),
+27: new LDrawColor( 187, 233, 11, 51, 51, 51, 255 ),
+28: new LDrawColor( 149, 138, 115, 51, 51, 51, 255 ),
+29: new LDrawColor( 228, 173, 200, 51, 51, 51, 255 ),
+30: new LDrawColor( 172, 120, 186, 51, 51, 51, 255 ),
+31: new LDrawColor( 225, 213, 237, 51, 51, 51, 255 ),
+68: new LDrawColor( 243, 207, 155, 51, 51, 51, 255 ),
+69: new LDrawColor( 205, 98, 152, 51, 51, 51, 255 ),
+70: new LDrawColor( 88, 42, 18, 89, 89, 89, 255 ),
+71: new LDrawColor( 160, 165, 169, 51, 51, 51, 255 ),
+72: new LDrawColor( 108, 110, 104, 51, 51, 51, 255 ),
+73: new LDrawColor( 92, 157, 209, 51, 51, 51, 255 ),
+74: new LDrawColor( 115, 220, 161, 51, 51, 51, 255 ),
+77: new LDrawColor( 254, 204, 207, 51, 51, 51, 255 ),
+78: new LDrawColor( 246, 215, 179, 51, 51, 51, 255 ),
+84: new LDrawColor( 204, 112, 42, 51, 51, 51, 255 ),
+85: new LDrawColor( 63, 54, 145, 30, 30, 30, 255 ),
+86: new LDrawColor( 124, 80, 58, 51, 51, 51, 255 ),
+89: new LDrawColor( 76, 97, 219, 51, 51, 51, 255 ),
+92: new LDrawColor( 208, 145, 104, 51, 51, 51, 255 ),
+100: new LDrawColor( 254, 186, 189, 51, 51, 51, 255 ),
+110: new LDrawColor( 67, 84, 163, 51, 51, 51, 255 ),
+112: new LDrawColor( 104, 116, 202, 51, 51, 51, 255 ),
+115: new LDrawColor( 199, 210, 60, 51, 51, 51, 255 ),
+118: new LDrawColor( 179, 215, 209, 51, 51, 51, 255 ),
+120: new LDrawColor( 217, 228, 167, 51, 51, 51, 255 ),
+125: new LDrawColor( 249, 186, 97, 51, 51, 51, 255 ),
+151: new LDrawColor( 230, 227, 224, 51, 51, 51, 255 ),
+191: new LDrawColor( 248, 187, 61, 51, 51, 51, 255 ),
+212: new LDrawColor( 134, 193, 225, 51, 51, 51, 255 ),
+216: new LDrawColor( 179, 16, 4, 51, 51, 51, 255 ),
+226: new LDrawColor( 255, 240, 58, 51, 51, 51, 255 ),
+232: new LDrawColor( 86, 190, 214, 51, 51, 51, 255 ),
+272: new LDrawColor( 13, 50, 91, 30, 30, 30, 255 ),
+288: new LDrawColor( 24, 70, 50, 89, 89, 89, 255 ),
+308: new LDrawColor( 53, 33, 0, 89, 89, 89, 255 ),
+313: new LDrawColor( 84, 169, 200, 51, 51, 51, 255 ),
+320: new LDrawColor( 114, 14, 15, 51, 51, 51, 255 ),
+321: new LDrawColor( 20, 152, 215, 51, 51, 51, 255 ),
+322: new LDrawColor( 62, 194, 221, 51, 51, 51, 255 ),
+323: new LDrawColor( 189, 220, 216, 51, 51, 51, 255 ),
+326: new LDrawColor( 223, 238, 165, 51, 51, 51, 255 ),
+330: new LDrawColor( 155, 154, 90, 51, 51, 51, 255 ),
+335: new LDrawColor( 214, 117, 114, 51, 51, 51, 255 ),
+351: new LDrawColor( 247, 133, 177, 51, 51, 51, 255 ),
+366: new LDrawColor( 250, 156, 28, 51, 51, 51, 255 ),
+373: new LDrawColor( 132, 94, 132, 51, 51, 51, 255 ),
+378: new LDrawColor( 160, 188, 172, 51, 51, 51, 255 ),
+379: new LDrawColor( 89, 113, 132, 51, 51, 51, 255 ),
+450: new LDrawColor( 182, 123, 80, 51, 51, 51, 255 ),
+462: new LDrawColor( 255, 167, 11, 51, 51, 51, 255 ),
+484: new LDrawColor( 169, 85, 0, 51, 51, 51, 255 ),
+503: new LDrawColor( 230, 227, 218, 51, 51, 51, 255 ),
+47: new LDrawColor( 252, 252, 252, 195, 195, 195, 128 ),
+40: new LDrawColor( 99, 95, 82, 23, 19, 22, 128 ),
+36: new LDrawColor( 201, 26, 9, 136, 0, 0, 128 ),
+38: new LDrawColor( 255, 128, 13, 189, 36, 0, 128 ),
+57: new LDrawColor( 240, 143, 28, 164, 92, 40, 128 ),
+54: new LDrawColor( 218, 176, 0, 195, 186, 63, 128 ),
+46: new LDrawColor( 245, 205, 47, 142, 116, 0, 128 ),
+42: new LDrawColor( 192, 255, 0, 132, 195, 0, 128 ),
+35: new LDrawColor( 86, 230, 70, 157, 168, 107, 128 ),
+34: new LDrawColor( 35, 120, 65, 30, 98, 57, 128 ),
+33: new LDrawColor( 0, 32, 160, 0, 0, 100, 128 ),
+41: new LDrawColor( 85, 154, 183, 25, 105, 115, 128 ),
+43: new LDrawColor( 174, 233, 239, 114, 179, 176, 128 ),
+39: new LDrawColor( 193, 223, 240, 133, 163, 180, 128 ),
+44: new LDrawColor( 150, 112, 159, 90, 52, 99, 128 ),
+52: new LDrawColor( 165, 165, 203, 40, 0, 37, 128 ),
+37: new LDrawColor( 223, 102, 149, 163, 42, 89, 128 ),
+45: new LDrawColor( 252, 151, 172, 168, 113, 140, 128 ),
+334: new LDrawColor( 187, 165, 61, 187, 178, 61, 255 ),
+383: new LDrawColor( 224, 224, 224, 164, 164, 164, 255 ),
+60: new LDrawColor( 100, 90, 76, 40, 30, 16, 255 ),
+64: new LDrawColor( 27, 42, 52, 89, 89, 89, 255 ),
+61: new LDrawColor( 108, 150, 191, 32, 42, 104, 255 ),
+62: new LDrawColor( 60, 179, 113, 0, 119, 53, 255 ),
+63: new LDrawColor( 170, 77, 142, 110, 17, 82, 255 ),
+183: new LDrawColor( 242, 243, 242, 51, 51, 51, 255 ),
+150: new LDrawColor( 187, 189, 188, 51, 51, 51, 255 ),
+135: new LDrawColor( 156, 163, 168, 51, 51, 51, 255 ),
+179: new LDrawColor( 137, 135, 136, 51, 51, 51, 255 ),
+148: new LDrawColor( 87, 88, 87, 51, 51, 51, 255 ),
+137: new LDrawColor( 86, 119, 186, 51, 51, 51, 255 ),
+142: new LDrawColor( 220, 190, 97, 51, 51, 51, 255 ),
+297: new LDrawColor( 204, 156, 43, 51, 51, 51, 255 ),
+178: new LDrawColor( 180, 136, 62, 51, 51, 51, 255 ),
+134: new LDrawColor( 150, 74, 39, 51, 51, 51, 255 ),
+80: new LDrawColor( 165, 169, 180, 51, 51, 51, 255 ),
+81: new LDrawColor( 137, 155, 95, 51, 51, 51, 255 ),
+82: new LDrawColor( 219, 172, 52, 51, 51, 51, 255 ),
+83: new LDrawColor( 26, 40, 49, 51, 51, 51, 255 ),
+87: new LDrawColor( 109, 110, 92, 51, 51, 51, 255 ),
+79: new LDrawColor( 255, 255, 255, 195, 195, 195, 224 ),
+21: new LDrawColor( 224, 255, 176, 164, 195, 116, 250 ),
+294: new LDrawColor( 189, 198, 173, 129, 138, 113, 250 ),
+114: new LDrawColor( 223, 102, 149, 154, 42, 102, 128 ),
+117: new LDrawColor( 255, 255, 255, 195, 195, 195, 128 ),
+129: new LDrawColor( 100, 0, 97, 40, 0, 37, 128 ),
+132: new LDrawColor( 0, 0, 0, 137, 135, 136, 255 ),
+133: new LDrawColor( 0, 0, 0, 219, 172, 52, 255 ),
+75: new LDrawColor( 0, 0, 0, 171, 96, 56, 255 ),
+76: new LDrawColor( 99, 95, 97, 137, 135, 136, 255 ),
+65: new LDrawColor( 245, 205, 47, 51, 51, 51, 255 ),
+66: new LDrawColor( 202, 176, 0, 142, 116, 0, 128 ),
+67: new LDrawColor( 255, 255, 255, 195, 195, 195, 128 ),
+256: new LDrawColor( 33, 33, 33, 89, 89, 89, 255 ),
+273: new LDrawColor( 0, 51, 178, 51, 51, 51, 255 ),
+324: new LDrawColor( 196, 0, 38, 51, 51, 51, 255 ),
+350: new LDrawColor( 208, 102, 16, 51, 51, 51, 255 ),
+375: new LDrawColor( 193, 194, 193, 51, 51, 51, 255 ),
+406: new LDrawColor( 0, 29, 104, 89, 89, 89, 255 ),
+449: new LDrawColor( 129, 0, 123, 51, 51, 51, 255 ),
+490: new LDrawColor( 215, 240, 0, 51, 51, 51, 255 ),
+496: new LDrawColor( 163, 162, 164, 51, 51, 51, 255 ),
+504: new LDrawColor( 137, 135, 136, 51, 51, 51, 255 ),
+511: new LDrawColor( 250, 250, 250, 51, 51, 51, 255 ),
+16: new LDrawColor( 127, 127, 127, 51, 51, 51, 255 ),
+24: new LDrawColor( 127, 127, 127, 51, 51, 51, 255 ),
+32: new LDrawColor( 0, 0, 0, 51, 51, 51, 200 ),
+493: new LDrawColor( 101, 103, 97, 89, 89, 89, 255 ),
+494: new LDrawColor( 208, 208, 208, 51, 51, 51, 255 ),
+495: new LDrawColor( 174, 122, 89, 51, 51, 51, 255 ),
       };
   }
 }
@@ -123,11 +265,37 @@ class LDrawFileContent extends LDrawPrimitive{
     return list;
   }
   
+  List<int> colorFromHex( String hex ){
+    if( hex.startsWith( '#' ) )
+      hex = hex.substring( 1 );
+    else if( hex.startsWith( '0x' ) )
+      hex = hex.substring( 2 );
+    //TODO: else exception
+    
+    //TODO: exception if lenght != 6
+    
+    //Parse
+    int r = int.parse( hex.substring(0, 2), radix: 16 ); 
+    int g = int.parse( hex.substring(2, 4), radix: 16 ); 
+    int b = int.parse( hex.substring(4, 6), radix: 16 );
+
+    return [ r, g, b ];
+  }
   void parse_comment(List<String> parts){
     if( parts.length > 0 )
       switch( parts[0] ){
         case "STEP": break;
         case "ROTATION": break;
+        case "!COLOUR":
+            //TODO: real implementation instead of this shit
+            int code = int.parse( parts[3] );
+            List<int> main = colorFromHex( parts[5] );
+            List<int> edge = colorFromHex( parts[7] );
+            int alpha = 255;
+            if( parts.length > 9 && parts[8] == "ALPHA" )
+              alpha = int.parse( parts[9] );
+            color_index.colors[code] = new LDrawColor( main[0], main[1], main[2], edge[0], edge[1], edge[2], alpha );
+          break;
         //default: print("comment");
       }
   }
