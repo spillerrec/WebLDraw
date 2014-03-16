@@ -13,14 +13,16 @@ class LDrawLoader{
   int files_needed = 0;
   int total_file_size = 0;
   
-  LDrawFile file = new LDrawFile();
+  LDrawFile file;
   LDrawWidget viewer;
   
   LDrawLoader( String filename, [this.viewer=null] ){
-    load_file( file, filename, true );
+    file = new LDrawFile( filename );
+    load_file( file, true );
   }
   
-  void load_file( LDrawFile load, String filename, [bool local=false] ){
+  void load_file( LDrawFile load, [bool local=false] ){
+    String filename = load.name;
     if( cache.containsKey( filename ) )
       load.content = cache[filename];
     else{
