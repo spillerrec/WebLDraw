@@ -1,7 +1,6 @@
 library GRAPHICS;
 
 import 'dart:html';
-import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:web_gl';
 
@@ -76,6 +75,7 @@ class Canvas{
     //TODO: we want wheelDeltaY, but it appears to be broken in dart2js
   }
   
+  int original_width, original_height;
   Canvas( CanvasElement canvas ){
     this.canvas = canvas;
     canvas.onMouseDown.listen( mouseHandler );
@@ -84,6 +84,20 @@ class Canvas{
     window.onMouseMove.listen( mouseHandler );
     canvas.onContextMenu.listen( (e) => e.preventDefault() ); //Disable right-click menu
     //TODO: only disable when dragging!
+    
+    original_width = canvas.width;
+    original_height = canvas.height;
+    canvas.onFullscreenChange.listen( (t){
+      if( canvas == document.fullscreenElement ){
+        canvas.width = window.screen.width;
+        canvas.height = window.screen.height;
+      }
+      else{
+        canvas.width = original_width;
+        canvas.height = original_height;
+      }
+      requestUpdate();
+    } );
 
     //Initialize WebGL
     gl = canvas.getContext3d();
@@ -176,7 +190,7 @@ class Canvas{
     window.requestAnimationFrame( (num time) => update() );
   }
   
-  void requestUpdate( [bool animate=false] ){
+  void requestUpdate(){
     this.draw = true;
   }
   
