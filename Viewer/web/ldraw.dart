@@ -256,8 +256,6 @@ class LDrawFileContent extends LDrawPrimitive{
     });
     
     //load all files now
-    if( files.length > 0 )
-      print( files );
     load_primitives( loader, new Map<String,LDrawFileContent>() );
     }
     catch(object){
