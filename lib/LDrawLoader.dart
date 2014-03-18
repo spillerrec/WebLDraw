@@ -87,8 +87,11 @@ class LDrawLoader{
   }
   
   void update_progress(){
-    if( files_loaded + files_failed >= files_needed && viewer != null )
-      viewer.show( file );
-    //TODO: show progress
+    if( viewer != null ){
+      viewer.update( files_loaded, files_needed );
+      if( files_loaded + files_failed >= files_needed )
+        viewer.show( file );
+      //TODO: show error on fail
+    }
   }
 }
