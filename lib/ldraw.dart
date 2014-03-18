@@ -199,11 +199,12 @@ class LDrawColorId{
 }
 
 class LDrawContext{
-  LDrawColorIndex index = new LDrawColorIndex.officialColors();
+  LDrawColorIndex index;
   Matrix4 offset = new Matrix4.identity();
   LDrawColor color;
   
   LDrawContext(){
+    index = new LDrawColorIndex.officialColors();
     color = index.lookUp(0);
   }
   LDrawContext.subpart( LDrawContext context, this.color, this.offset ){
