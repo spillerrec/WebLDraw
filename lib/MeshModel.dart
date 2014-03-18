@@ -1,14 +1,45 @@
 part of ldraw;
 
-class ColorBin<T>{
-  int color;
-  List<T> list;
+class DynamicFloat32List{
+  Float32List list;
+  int length = 0;
+  void addAll( Float32List add, Matrix4 offset ){
+    if( list == null ){ //List doesn't exist
+      list = new Float32List.fromList( add );
+    }
+    else{
+      if( length + add.length < list.length ){
+        //List large enough to contain both
+        for( int i=0; i<add.length; i++ )
+          list[i+length] = add[i];
+      }
+      else{
+        //List not large enough, need to expand
+        Float32List new_list = new Float32List( (length+add.length)*2 );
+        for( int i=0; i<length; i++ )
+          new_list[i] = list[i];
+        for( int i=0; i<add.length; i++ )
+          new_list[i+length] = add[i];
+        list = new_list;
+      }
+    }
+    
+    for(int i=0; i<add.length ~/ 3 * 3; i+=3){
+      Matrix4 pos = new Matrix4.identity().translate( list[length+i], list[length+i+1], list[length+i+2]);
+      Vector3 new_pos = offset.clone().multiply(pos).getTranslation();
+      list[length+i] = new_pos.x;
+      list[length+i+1] = new_pos.y;
+      list[length+i+2] = new_pos.z;
+    }
+    
+    length += add.length;
+  }
 }
 
 class MeshColor{
   double r,g,b,a;
   MeshColor( this.r, this.g, this.b, this.a );
-  void draw( Canvas canvas ) => canvas.setColor( r, g, b,a );
+  void draw( Canvas canvas ) => canvas.setColor( r, g, b, a );
   
   operator ==(MeshColor other){
     return r == other.r && g == other.g && b == other.b && a == other.a;
@@ -25,13 +56,10 @@ class MeshColor{
 
 abstract class MeshPrimitive{
   MeshColor color;
-  List<double> vertices = new List<double>();
-  Float32List compiled = null;
+  DynamicFloat32List vertices = new DynamicFloat32List();
   
   void draw(Canvas canvas){
     color.draw( canvas );
-    if( compiled == null )
-      compiled = new Float32List.fromList( vertices );
   }
 }
 
@@ -39,7 +67,7 @@ class MeshTriangles extends MeshPrimitive{
   MeshTriangles(MeshColor color){this.color = color;}
   void draw(Canvas canvas){
     super.draw(canvas);
-    canvas.draw_triangles(compiled, compiled.length ~/ 3);
+    canvas.draw_triangles(vertices.list, vertices.length ~/ 3);
   }
 }
 
@@ -47,7 +75,7 @@ class MeshLines extends MeshPrimitive{
   MeshLines(MeshColor color){this.color = color;}
   void draw(Canvas canvas){
     super.draw(canvas);
-    canvas.draw_lines(compiled, compiled.length ~/ 3);
+    canvas.draw_lines(vertices.list, vertices.length ~/ 3);
   }
 }
 
@@ -64,16 +92,16 @@ class MeshModel{
     //TODO: we need a way to reuse these functions
     lines.values.forEach( (f){
       for( int i=0; i<f.vertices.length ~/ 3 * 3; i+=3 ){
-        f.vertices[i] -= dx;
-        f.vertices[i+1] -= dy;
-        f.vertices[i+2] -= dz;
+        f.vertices.list[i] -= dx;
+        f.vertices.list[i+1] -= dy;
+        f.vertices.list[i+2] -= dz;
       }
     });
     triangles.values.forEach( (f){
       for( int i=0; i<f.vertices.length ~/ 3 * 3; i+=3 ){
-        f.vertices[i] -= dx;
-        f.vertices[i+1] -= dy;
-        f.vertices[i+2] -= dz;
+        f.vertices.list[i] -= dx;
+        f.vertices.list[i+1] -= dy;
+        f.vertices.list[i+2] -= dz;
       }
     });
   }
@@ -85,42 +113,27 @@ class MeshModel{
     //NOTE: We could do it for Lines as well, but it isn't really nessasary
     triangles.values.forEach((f){
       for( int i=0; i<f.vertices.length ~/ 3 * 3; i+=3 ){
-        min_x = math.min( min_x, f.vertices[i] );
-        min_y = math.min( min_y, f.vertices[i+1] );
-        min_z = math.min( min_z, f.vertices[i+2] );
-        max_x = math.max( max_x, f.vertices[i] );
-        max_y = math.max( max_y, f.vertices[i+1] );
-        max_z = math.max( max_z, f.vertices[i+2] );
+        min_x = math.min( min_x, f.vertices.list[i] );
+        min_y = math.min( min_y, f.vertices.list[i+1] );
+        min_z = math.min( min_z, f.vertices.list[i+2] );
+        max_x = math.max( max_x, f.vertices.list[i] );
+        max_y = math.max( max_y, f.vertices.list[i+1] );
+        max_z = math.max( max_z, f.vertices.list[i+2] );
       }
     });
     
     offset( (max_x-min_x)/2+min_x, (max_y-min_y)/2+min_y, (max_z-min_z)/2+min_z );
     return math.min( min_z, math.min( min_y, min_x ) );
   }
-  
-  List<double> move( List<double> data, Matrix4 offset ){
-    for(int i=0; i<data.length ~/ 3 * 3; i+=3){
-      Matrix4 pos = new Matrix4.identity().translate( data[i], data[i+1], data[i+2]);
-      Vector3 new_pos = offset.clone().multiply(pos).getTranslation();
-      data[i] = new_pos.x;
-      data[i+1] = new_pos.y;
-      data[i+2] = new_pos.z;
-    }
-    return data;
-  }
 
   void add_triangle( Float32List vertices, Matrix4 offset, double r, double g, double b, double a ){
     MeshColor color = new MeshColor( r, g, b, a );
-    List<double> data = move( vertices.toList(), offset );
-    MeshTriangles tri = triangles.putIfAbsent(color, () => new MeshTriangles(color));
-    tri.vertices.addAll(data);
-    tri.compiled = null;
+    MeshTriangles tri = triangles.putIfAbsent( color, () => new MeshTriangles(color) );
+    tri.vertices.addAll( vertices, offset );
   }
   void add_lines( Float32List vertices, Matrix4 offset, double r, double g, double b, double a ){
     MeshColor color = new MeshColor( r, g, b, a );
-    List<double> data = move( vertices.toList(), offset );
-    MeshLines line = lines.putIfAbsent(color, () => new MeshLines(color));
-    line.vertices.addAll(data);
-    line.compiled = null;
+    MeshLines line = lines.putIfAbsent( color, () => new MeshLines(color) );
+    line.vertices.addAll( vertices, offset );
   }
 }

@@ -16,12 +16,17 @@ class LDrawColorIndex{
   LDrawColorIndex(){
     colors = new Map<int,LDrawColor>();
   }
+  LDrawColorIndex.from( this.colors );
   
   LDrawColorIndex combine( LDrawColorIndex parent ){
-    LDrawColorIndex combined = new LDrawColorIndex();
-    combined.colors.addAll(parent.colors);
-    combined.colors.addAll(colors);
-    return combined;
+    if( colors.length > 0 ){
+      LDrawColorIndex combined = new LDrawColorIndex();
+      combined.colors.addAll(parent.colors);
+      combined.colors.addAll(colors);
+      return combined;
+    }
+    else
+      return new LDrawColorIndex.from( parent.colors );
   }
   
   LDrawColor lookUp( int index ){
