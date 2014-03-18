@@ -136,12 +136,22 @@ class MeshModel{
     //NOTE: We could do it for Lines as well, but it isn't really nessasary
     triangles.values.forEach((f){
       for( int i=0; i<f.vertices.length ~/ 3 * 3; i+=3 ){
+        /*
         min_x = math.min( min_x, f.vertices.list[i] );
         min_y = math.min( min_y, f.vertices.list[i+1] );
         min_z = math.min( min_z, f.vertices.list[i+2] );
         max_x = math.max( max_x, f.vertices.list[i] );
         max_y = math.max( max_y, f.vertices.list[i+1] );
         max_z = math.max( max_z, f.vertices.list[i+2] );
+        // */
+        //* This is getting stupid...
+        min_x = min_x < f.vertices.list[i] ? min_x : f.vertices.list[i];
+        min_y = min_y < f.vertices.list[i+1] ? min_y : f.vertices.list[i+1];
+        min_z = min_z < f.vertices.list[i+2] ? min_z : f.vertices.list[i+2];
+        max_x = max_x > f.vertices.list[i] ? max_x : f.vertices.list[i];
+        max_y = max_y > f.vertices.list[i+1] ? max_y : f.vertices.list[i+1];
+        max_z = max_z > f.vertices.list[i+2] ? max_z : f.vertices.list[i+2];
+        // */
       }
     });
     
