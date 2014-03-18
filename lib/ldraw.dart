@@ -3,7 +3,7 @@ part of ldraw;
 class LDrawColor{
   int r, g, b; //Main color
   int er, eg, eb; //Edge color
-  int alpha = 255;
+  int alpha;
   //Not supported:
   //Luminance
   //Materials
@@ -12,7 +12,7 @@ class LDrawColor{
 }
 class LDrawColorIndex{
   //TODO: this makes new colors work for the entire file, we only want it for the remaining of the file!
-  Map<int,LDrawColor> colors = new Map<int,LDrawColor>();
+  Map<int,LDrawColor> colors;
   LDrawColorIndex(){
     colors = new Map<int,LDrawColor>();
   }
@@ -200,10 +200,11 @@ class LDrawColorId{
 
 class LDrawContext{
   LDrawColorIndex index;
-  Matrix4 offset = new Matrix4.identity();
+  Matrix4 offset;
   LDrawColor color;
   
   LDrawContext(){
+    offset = new Matrix4.identity();
     index = new LDrawColorIndex.officialColors();
     color = index.lookUp(0);
   }

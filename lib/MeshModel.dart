@@ -25,11 +25,34 @@ class DynamicFloat32List{
     }
     
     for(int i=0; i<add.length ~/ 3 * 3; i+=3){
-      Matrix4 pos = new Matrix4.identity().translate( list[length+i], list[length+i+1], list[length+i+2]);
+    /*
+      Matrix4 pos = new Matrix4.translationValues( list[length+i], list[length+i+1], list[length+i+2]);
       Vector3 new_pos = offset.clone().multiply(pos).getTranslation();
       list[length+i] = new_pos.x;
       list[length+i+1] = new_pos.y;
       list[length+i+2] = new_pos.z;
+    // */
+    //* The same code as above, taken from source, and removed reductanct statements
+      //Why isn't the optimizer doing this?
+      final double m00 = offset.storage[0];
+      final double m01 = offset.storage[4];
+      final double m02 = offset.storage[8];
+      final double m03 = offset.storage[12];
+      final double m10 = offset.storage[1];
+      final double m11 = offset.storage[5];
+      final double m12 = offset.storage[9];
+      final double m13 = offset.storage[13];
+      final double m20 = offset.storage[2];
+      final double m21 = offset.storage[6];
+      final double m22 = offset.storage[10];
+      final double m23 = offset.storage[14];
+      final double n03 = list[length+i];
+      final double n13 = list[length+i+1];
+      final double n23 = list[length+i+2];
+      list[length+i] =  (m00 * n03) + (m01 * n13) + (m02 * n23) + (m03);
+      list[length+i+1] =  (m10 * n03) + (m11 * n13) + (m12 * n23) + (m13);
+      list[length+i+2] =  (m20 * n03) + (m21 * n13) + (m22 * n23) + (m23);
+    // */
     }
     
     length += add.length;
