@@ -35,9 +35,9 @@ class LDrawLoader{
       p_first = true;
     
     List<String> paths = [
-        "assets/WebLDraw/ldraw/parts/" + filename
-      , "assets/WebLDraw/ldraw/p/" + filename
-      , "assets/WebLDraw/ldraw/models/" + filename
+        "assets/webldraw/ldraw/parts/" + filename
+      , "assets/webldraw/ldraw/p/" + filename
+      , "assets/webldraw/ldraw/models/" + filename
       ];
     
     //Swap 'p/' and 'parts/'
