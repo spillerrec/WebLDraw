@@ -1,5 +1,11 @@
 part of ldraw;
 
+abstract class Drawable3D{
+  void setColor( double r, double g, double b, double alpha );
+  void draw_triangles( Float32List vertices, int amount );
+  void draw_lines( Float32List vertices, int amount );
+}
+
 class DynamicFloat32List{
   Float32List list;
   int length = 0;
@@ -62,7 +68,7 @@ class DynamicFloat32List{
 class MeshColor{
   double r,g,b,a;
   MeshColor( this.r, this.g, this.b, this.a );
-  void draw( Canvas canvas ) => canvas.setColor( r, g, b, a );
+  void draw( Drawable3D canvas ) => canvas.setColor( r, g, b, a );
   
   operator ==(MeshColor other){
     return r == other.r && g == other.g && b == other.b && a == other.a;
@@ -81,14 +87,14 @@ abstract class MeshPrimitive{
   MeshColor color;
   DynamicFloat32List vertices = new DynamicFloat32List();
   
-  void draw(Canvas canvas){
+  void draw(Drawable3D canvas){
     color.draw( canvas );
   }
 }
 
 class MeshTriangles extends MeshPrimitive{
   MeshTriangles(MeshColor color){this.color = color;}
-  void draw(Canvas canvas){
+  void draw(Drawable3D canvas){
     super.draw(canvas);
     canvas.draw_triangles(vertices.list, vertices.length ~/ 3);
   }
@@ -96,7 +102,7 @@ class MeshTriangles extends MeshPrimitive{
 
 class MeshLines extends MeshPrimitive{
   MeshLines(MeshColor color){this.color = color;}
-  void draw(Canvas canvas){
+  void draw(Drawable3D canvas){
     super.draw(canvas);
     canvas.draw_lines(vertices.list, vertices.length ~/ 3);
   }
@@ -106,7 +112,7 @@ class MeshModel{
   Map<MeshColor,MeshLines> lines = new Map<MeshColor,MeshLines>();
   Map<MeshColor,MeshTriangles> triangles = new Map<MeshColor,MeshTriangles>();
   
-  void draw(Canvas canvas){
+  void draw(Drawable3D canvas){
     lines.values.forEach((f) => f.draw(canvas));
     triangles.values.forEach((f) => f.draw(canvas));
   }

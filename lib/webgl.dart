@@ -1,6 +1,6 @@
-part of ldraw;
+part of webldraw;
 
-class Canvas{
+class Canvas extends Drawable3D{
   CanvasElement canvas;
   RenderingContext gl;
   

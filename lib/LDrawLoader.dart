@@ -1,17 +1,27 @@
 part of ldraw;
 
+abstract class LDrawLib{
+  String base_dir = "/assets/webldraw/ldraw/";
+  Future<String> load( String url );
+}
+
+abstract class Progress{
+  int current = 0;
+  int total = 0;
+  int failed = 0;
+  void updated();
+}
+
 class LDrawLoader{
   static Map<String,LDrawFileContent> cache = new Map<String,LDrawFileContent>();
   
-  int files_loaded = 0;
-  int files_failed = 0;
-  int files_needed = 0;
   int total_file_size = 0;
   
+  LDrawLib lib;
   LDrawFile file;
-  LDrawWidget viewer;
+  Progress progress;
   
-  LDrawLoader( String filename, [this.viewer=null] ){
+  LDrawLoader( this.lib, String filename, [this.progress=null] ){
     file = new LDrawFile( filename );
     load_file( file, true );
   }
@@ -56,7 +66,7 @@ class LDrawLoader{
     else{
       load.content = new LDrawFileContent();
       cache[filename] = load.content;
-      files_needed++;
+      progress.total++;
 
       List<String> names = standardLibraries( filename.toLowerCase() );
       if( local )
@@ -68,30 +78,21 @@ class LDrawLoader{
 
   void load_ldraw_list( List<String> names, String name ){
     String try_load = names.removeAt(0);
-    HttpRequest.getString( try_load )
+    lib.load( try_load )
     .then( (content){
       cache[name].init( content, this );
       total_file_size += content.length;
-      files_loaded++;
-      update_progress();
+      progress.current++;
+      progress.updated();
     } )
     .catchError( (onError){
       if( names.length > 0 )
         load_ldraw_list( names, name );
       else{
         print( "Could not retrive file: " + name + " :\\" );
-        files_failed++;
-        update_progress();
+        progress.failed++;
+        progress.updated();
       }
     } );
-  }
-  
-  void update_progress(){
-    if( viewer != null ){
-      viewer.update( files_loaded, files_needed );
-      if( files_loaded + files_failed >= files_needed )
-        viewer.show( file );
-      //TODO: show error on fail
-    }
   }
 }

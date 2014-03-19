@@ -1,14 +1,19 @@
-part of ldraw;
+part of webldraw;
 
-class LDrawWidget{
+class LDrawHttpLib extends LDrawLib{
+  Future<String> load( String url ) => HttpRequest.getString( url );
+}
+
+class LDrawWidget extends Progress{
   Element container;
   Canvas canvas;
   bool active = false;
+  LDrawLoader loader;
   
   LDrawWidget( this.container ){
     canvas = new Canvas( container.querySelector("canvas") );
     String filename = container.dataset["file"];
-    LDrawLoader loader = new LDrawLoader( filename, this );
+    loader = new LDrawLoader( new LDrawHttpLib(), filename, this );
 
     canvas.canvas.onMouseEnter.listen( (t){ active=true; } );
     canvas.canvas.onMouseLeave.listen( (t){ active=false; } );
@@ -60,5 +65,14 @@ class LDrawWidget{
   void removeProgressBar(){
     bar.remove();
     bar_text.remove();
+  }
+
+  @override
+  void updated() {
+    update( current, total );
+    if( current >= total ){
+      canvas.load_ldraw( loader.file );
+      removeProgressBar();
+    }
   }
 }
