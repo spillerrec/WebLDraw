@@ -6,26 +6,39 @@ abstract class Drawable3D{
   void draw_lines( Float32List vertices, int amount );
 }
 
+List<Float32List> unused = new List<Float32List>();
 class DynamicFloat32List{
+  Float32List create( int wanted ){
+    for( int i=0; i<unused.length; i++ ){
+      if( unused[i].length >= wanted )
+        return unused.removeAt(i);
+    }
+    return new Float32List( wanted );
+  }
+  
   Float32List list;
   int length = 0;
   void addAll( Float32List add, Matrix4 offset ){
     if( list == null ){ //List doesn't exist
-      list = new Float32List.fromList( add );
+      list = create( add.length );
+      for( int i=0; i<add.length; i++ )
+        list[i] = add[i];
     }
     else{
-      if( length + add.length < list.length ){
+      int needed = length + add.length;
+      if( needed < list.length ){
         //List large enough to contain both
         for( int i=0; i<add.length; i++ )
           list[i+length] = add[i];
       }
       else{
         //List not large enough, need to expand
-        Float32List new_list = new Float32List( (length+add.length)*2 );
+        Float32List new_list = create( needed*2 );
         for( int i=0; i<length; i++ )
           new_list[i] = list[i];
         for( int i=0; i<add.length; i++ )
           new_list[i+length] = add[i];
+        unused.add(list);
         list = new_list;
       }
     }
