@@ -37,7 +37,6 @@ class LDrawWidget extends Progress{
     container.style.position = 'relative';
     
     bar = new Element.div();
-    bar.attributes['class'] = 'progress';
     bar.style.backgroundColor = 'green';
     
     bar_text = new Element.p();
@@ -51,9 +50,25 @@ class LDrawWidget extends Progress{
     container.append( bar_text );
   }
   
-  void centerElement( Element em ){
+  void showWarning( String message ){
+    Element warning = new Element.p();
+    warning.style.backgroundColor = 'yellow';
+    warning.style.textAlign = 'center';
+    warning.style.width = '100%';
+    warning.style.top = '0';
+    warning.style.position = 'absolute';
+    warning.style.lineHeight = '2em';
+    
+    warning.appendText( message + " (Click to close)" );
+    
+    warning.onClick.listen( (t){ warning.remove(); } );
+    
+    container.append( warning );
+  }
+  
+  void centerElement( Element em, [int top=45] ){
     em.style.position = 'absolute';
-    em.style.top = '45%';
+    em.style.top = '$top%';
     em.style.height = '10%';
   }
   
@@ -70,9 +85,12 @@ class LDrawWidget extends Progress{
   @override
   void updated() {
     update( current, total );
-    if( current >= total ){
+    if( current + failed >= total ){
       canvas.load_ldraw( loader.file );
       removeProgressBar();
+      
+      if( failed > 0 )
+        showWarning( "$failed file(s) not loaded" );
     }
   }
 }
