@@ -1,7 +1,7 @@
 part of ldraw;
 
 abstract class Drawable3D{
-  void setColor( double r, double g, double b, double alpha );
+  void setColor( int r, int g, int b, int alpha );
   void draw_triangles( Float32List vertices, int amount );
   void draw_lines( Float32List vertices, int amount );
 }
@@ -79,7 +79,7 @@ class DynamicFloat32List{
 }
 
 class MeshColor{
-  double r,g,b,a;
+  int r,g,b,a;
   MeshColor( this.r, this.g, this.b, this.a );
   void draw( Drawable3D canvas ) => canvas.setColor( r, g, b, a );
   
@@ -88,10 +88,10 @@ class MeshColor{
   }
   int get hashCode{
     int result = 17;
-    result = 37 * result + (r*255).toInt();
-    result = 37 * result + (g*255).toInt();
-    result = 37 * result + (b*255).toInt();
-    result = 37 * result + (a*255).toInt();
+    result = 37 * result + r;
+    result = 37 * result + g;
+    result = 37 * result + b;
+    result = 37 * result + a;
     return result;
   }
 }
@@ -178,14 +178,18 @@ class MeshModel{
     return math.min( min_z, math.min( min_y, min_x ) );
   }
 
-  void add_triangle( Float32List vertices, Matrix4 offset, double r, double g, double b, double a ){
+  MeshTriangles last_tri;
+  void add_triangle( Float32List vertices, Matrix4 offset, int r, int g, int b, int a ){
     MeshColor color = new MeshColor( r, g, b, a );
-    MeshTriangles tri = triangles.putIfAbsent( color, () => new MeshTriangles(color) );
-    tri.vertices.addAll( vertices, offset );
+    if( last_tri == null || !(last_tri.color == color) )
+      last_tri = triangles.putIfAbsent( color, () => new MeshTriangles(color) );
+    last_tri.vertices.addAll( vertices, offset );
   }
-  void add_lines( Float32List vertices, Matrix4 offset, double r, double g, double b, double a ){
+  MeshLines last_line;
+  void add_lines( Float32List vertices, Matrix4 offset, int r, int g, int b, int a ){
     MeshColor color = new MeshColor( r, g, b, a );
-    MeshLines line = lines.putIfAbsent( color, () => new MeshLines(color) );
-    line.vertices.addAll( vertices, offset );
+    if( last_line == null || !(last_line.color == color) )
+      last_line = lines.putIfAbsent( color, () => new MeshLines(color) );
+    last_line.vertices.addAll( vertices, offset );
   }
 }

@@ -191,11 +191,11 @@ class Canvas extends Drawable3D{
     gl.uniformMatrix4fv( uMVMatrix, false, tmpList );
   }
   
-  double old_r = 0.0, old_g = 0.0, old_b = 0.0, old_a = 0.0;
-  void setColor( double r, double g, double b, double a ){
+  int old_r = 0, old_g = 0, old_b = 0, old_a = 0;
+  void setColor( int r, int g, int b, int a ){
     if( old_r != r || old_g != g || old_b != b || old_a != a ){
       old_r = r; old_g = g; old_b = b; old_a = a;
-      gl.uniform4f( aColor, r, g, b, a );
+      gl.uniform4f( aColor, r/255, g/255, b/255, a/255 );
     }
   }
 

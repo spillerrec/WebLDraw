@@ -208,8 +208,7 @@ class LDrawContext{
     index = new LDrawColorIndex.officialColors();
     color = index.lookUp(0);
   }
-  LDrawContext.subpart( LDrawContext context, this.color, this.offset ){
-    index = context.index;
+  LDrawContext.subpart( this.index, this.color, this.offset ){
   }
   LDrawContext.subfile( LDrawContext context, LDrawColorIndex index ){
     offset = context.offset;
@@ -424,7 +423,7 @@ class LDrawFile extends LDrawPrimitive{
 
   void to_mesh( MeshModel model, LDrawContext context ){
     Matrix4 new_pos = context.offset.clone().multiply(pos);
-    content.to_mesh( model, new LDrawContext.subpart( context, context.lookUp(color), new_pos ) );
+    content.to_mesh( model, new LDrawContext.subpart( context.index, context.lookUp(color), new_pos ) );
   }
 }
 
@@ -434,7 +433,7 @@ class LDrawLine extends LDrawPrimitive{
 
   void to_mesh( MeshModel model, LDrawContext context ){
     LDrawColor c = context.lookUp( color );
-    model.add_lines( vertices, context.offset, c.er/255, c.eg/255, c.eb/255, c.alpha/255 );
+    model.add_lines( vertices, context.offset, c.er, c.eg, c.eb, c.alpha );
   }
 }
 
@@ -444,7 +443,7 @@ class LDrawTriangle extends LDrawPrimitive{
 
   void to_mesh( MeshModel model, LDrawContext context ){
     LDrawColor c = context.lookUp( color );
-    model.add_triangle( vertices, context.offset, c.r/255, c.g/255, c.b/255, c.alpha/255 );
+    model.add_triangle( vertices, context.offset, c.r, c.g, c.b, c.alpha );
   }
 }
 
