@@ -196,6 +196,9 @@ class LDrawColorId{
     code = int.parse( part );
     //TODO: support rgb definition
   }
+  String toString(){
+    return code.toString();
+  }
 }
 
 class LDrawContext{
@@ -243,15 +246,14 @@ class LDrawFileContent extends LDrawPrimitive{
       List<String> parts = line.trim().split(" ");
       parts.removeWhere((test)=>test.isEmpty); //Note: could mess up file names if they contain spaces 
       
-      if( parts.length > 0 )
-         switch( parts.removeAt(0) ){
-           case '0': parse_comment(parts); break;
-           case '1': parse_subfile(parts,loader); break;
-           case '2': parse_line(parts); break;
-           case '3': parse_triangle(parts); break;
-           case '4': parse_quad(parts); break;
-           case '5': parse_optional(parts); break;
-         }
+      if( parts.length > 0 ){
+        int type = int.parse( parts.removeAt(0) );
+        if( type == 0 )
+          parse_comment(parts);
+        else{
+          current.add( LDrawPrimitive.parseFromId( type, parts, loader ) );
+        }
+      }
     });
     
     //load all files now
@@ -278,13 +280,6 @@ class LDrawFileContent extends LDrawPrimitive{
       } );
   }
   
-  Float32List from_string_list( List<String> parts, int start, int amount ){
-    Float32List list = new Float32List( amount );
-    for( int i=0; i<amount; i++ ){
-      list[i]=( double.parse( parts[i+start] ) );
-    }
-    return list;
-  }
   
   List<int> colorFromHex( String hex ){
     if( hex.startsWith( '#' ) )
@@ -332,76 +327,23 @@ class LDrawFileContent extends LDrawPrimitive{
       }
   }
   
-  void parse_subfile( List<String> parts, LDrawLoader loader ){
-    assert(parts.length >= 14);
 
-    String filepath = parts.sublist(13).join(" ").trim();
-    LDrawFile sub = new LDrawFile( filepath );
-    sub.color = new LDrawColorId.parse( parts[0] );
-    double x = double.parse( parts[1] );
-    double y = double.parse( parts[2] );
-    double z = double.parse( parts[3] );
-    double a = double.parse( parts[4] );
-    double b = double.parse( parts[5] );
-    double c = double.parse( parts[6] );
-    double d = double.parse( parts[7] );
-    double e = double.parse( parts[8] );
-    double f = double.parse( parts[9] );
-    double g = double.parse( parts[10] );
-    double h = double.parse( parts[11] );
-    double i = double.parse( parts[12] );
-    sub.pos = new Matrix4( a, d, g, 0.0, b, e, h, 0.0, c, f, i, 0.0, x, y, z, 1.0 );
+  @override
+  String asLDraw() {
+    String out = "";
+    if(files.length > 0)
+      out += "FILE 0\n";
     
-    current.add(sub);
-  }
-  void parse_line(List<String> parts){
-    assert(parts.length >= 7);
+    primitives.forEach( (f) => out += f.asLDraw() + "\n" );
     
-    LDrawLine line = new LDrawLine();
-    line.color = new LDrawColorId.parse( parts[0] );
-    line.vertices = from_string_list( parts, 1, 6 );
+    if(files.length > 0){
+      files.values.forEach( (f){
+        out += "FILE 0\n";
+        out += f.asLDraw();
+      });
+    }
     
-    current.add(line);
-  }
-  void parse_triangle(List<String> parts){
-    assert(parts.length >= 10);
-    
-    LDrawTriangle tri = new LDrawTriangle();
-    tri.color = new LDrawColorId.parse( parts[0] );
-    tri.vertices = from_string_list( parts, 1, 9 );
-
-    current.add(tri);
-  }
-  void parse_quad(List<String> parts){
-    assert(parts.length >= 13);
-    
-    LDrawTriangle quad = new LDrawTriangle();
-    quad.color = new LDrawColorId.parse( parts[0] );
-    Float32List arr1 = from_string_list( parts, 1, 9 );
-    Float32List arr2 = from_string_list( parts, 1+3, 9 );
-    for(int i=0; i<3; i++)
-      arr2[i] = arr1[i];
-    quad.vertices = combine( arr1, arr2 );
-    
-    current.add(quad);
-  }
-  void parse_optional(List<String> parts){
-    assert(parts.length >= 13);
-    LDrawOptional opt = new LDrawOptional();
-    opt.color = int.parse( parts[0] );
-    opt.x1 = double.parse( parts[1] );
-    opt.y1 = double.parse( parts[2] );
-    opt.z1 = double.parse( parts[3] );
-    opt.x2 = double.parse( parts[4] );
-    opt.y2 = double.parse( parts[5] );
-    opt.z2 = double.parse( parts[6] );
-    opt.x3 = double.parse( parts[7] );
-    opt.y3 = double.parse( parts[8] );
-    opt.z3 = double.parse( parts[9] );
-    opt.x4 = double.parse( parts[10] );
-    opt.y4 = double.parse( parts[11] );
-    opt.z4 = double.parse( parts[12] );
-    current.add(opt);
+    return out;
   }
 }
 Float32List combine(Float32List arr1, Float32List arr2){
@@ -411,6 +353,10 @@ Float32List combine(Float32List arr1, Float32List arr2){
   for(int i=0; i<arr2.length; i++)
     arr[i+arr1.length] = arr2[i];
   return arr;
+}
+
+String floatlist2string( Float32List list ){
+  return list.map( (f) => f.toString() ).join(' ');
 }
 
 class LDrawFile extends LDrawPrimitive{
@@ -425,6 +371,31 @@ class LDrawFile extends LDrawPrimitive{
     Matrix4 new_pos = context.offset.clone().multiply(pos);
     content.to_mesh( model, new LDrawContext.subpart( context.index, context.lookUp(color), new_pos ) );
   }
+
+  LDrawFile.parse( List<String> parts, LDrawLoader loader ){
+    assert(parts.length >= 14);
+
+    name = parts.sublist(13).join(" ").trim();
+    color = new LDrawColorId.parse( parts[0] );
+    double x = double.parse( parts[1] );
+    double y = double.parse( parts[2] );
+    double z = double.parse( parts[3] );
+    double a = double.parse( parts[4] );
+    double b = double.parse( parts[5] );
+    double c = double.parse( parts[6] );
+    double d = double.parse( parts[7] );
+    double e = double.parse( parts[8] );
+    double f = double.parse( parts[9] );
+    double g = double.parse( parts[10] );
+    double h = double.parse( parts[11] );
+    double i = double.parse( parts[12] );
+    pos = new Matrix4( a, d, g, 0.0, b, e, h, 0.0, c, f, i, 0.0, x, y, z, 1.0 );
+  }
+  
+  String asLDraw(){
+    String pos_str = "shit"; //TODO:
+    return "1 $color $pos_str $name";
+  }
 }
 
 class LDrawLine extends LDrawPrimitive{
@@ -434,6 +405,15 @@ class LDrawLine extends LDrawPrimitive{
   void to_mesh( MeshModel model, LDrawContext context ){
     LDrawColor c = context.lookUp( color );
     model.add_lines( vertices, context.offset, c.er, c.eg, c.eb, c.alpha );
+  }
+  String asLDraw(){
+    return "2 $color " + floatlist2string(vertices);
+  }
+  LDrawLine.parse(List<String> parts){
+    assert(parts.length == 7);
+    
+    color = new LDrawColorId.parse( parts[0] );
+    vertices = from_string_list( parts, 1, 6 );
   }
 }
 
@@ -445,26 +425,90 @@ class LDrawTriangle extends LDrawPrimitive{
     LDrawColor c = context.lookUp( color );
     model.add_triangle( vertices, context.offset, c.r, c.g, c.b, c.alpha );
   }
+  String asLDraw(){
+    return "3 $color " + floatlist2string(vertices);
+  }
+
+  LDrawTriangle.parse(List<String> parts){
+    assert(parts.length == 10);
+    
+    color = new LDrawColorId.parse( parts[0] );
+    vertices = from_string_list( parts, 1, 9 );
+  }
 }
 
 class LDrawQuad extends LDrawPrimitive{
-  int color = 16;
+  LDrawColorId color;
   Float32List vertices;
 
   void to_mesh( MeshModel model, LDrawContext context ){
-    print( "not implemented" );
+    LDrawColor c = context.lookUp( color );
+    model.add_triangle( vertices.sublist(0, 9), context.offset, c.r, c.g, c.b, c.alpha );
+    Float32List arr2 = vertices.sublist(3, 12);
+    for(int i=0; i<3; i++)
+      arr2[i] = vertices[i];
+    model.add_triangle( arr2, context.offset, c.r, c.g, c.b, c.alpha );
+  }
+  String asLDraw(){
+    return "4 $color " + floatlist2string(vertices);
+  }
+  LDrawQuad.parse(List<String> parts){
+    assert(parts.length >= 13);
+    
+    color = new LDrawColorId.parse( parts[0] );
+    vertices = from_string_list( parts, 1, 12 );
   }
 }
 
 class LDrawOptional extends LDrawPrimitive{
-  int color = 16;
+  LDrawColorId color;
   double x1 = 0.0, y1 = 0.0, z1 = 0.0;
   double x2 = 0.0, y2 = 0.0, z2 = 0.0;
   double x3 = 0.0, y3 = 0.0, z3 = 0.0;
   double x4 = 0.0, y4 = 0.0, z4 = 0.0;
   
+  String asLDraw(){
+    return "5 $color $x1 $y1 $z1 $x2 $y2 $z2 $x3 $y3 $z3 $x4 $y4 $z4";
+  }
+
+  LDrawOptional.parse(List<String> parts){
+    assert(parts.length == 13);
+    color = new LDrawColorId.parse( parts[0] );
+    x1 = double.parse( parts[1] );
+    y1 = double.parse( parts[2] );
+    z1 = double.parse( parts[3] );
+    x2 = double.parse( parts[4] );
+    y2 = double.parse( parts[5] );
+    z2 = double.parse( parts[6] );
+    x3 = double.parse( parts[7] );
+    y3 = double.parse( parts[8] );
+    z3 = double.parse( parts[9] );
+    x4 = double.parse( parts[10] );
+    y4 = double.parse( parts[11] );
+    z4 = double.parse( parts[12] );
+  }
 }
 
 abstract class LDrawPrimitive{
   void to_mesh( MeshModel model, LDrawContext context ){ }
+  String asLDraw();
+
+  Float32List from_string_list( List<String> parts, int start, int amount ){
+    Float32List list = new Float32List( amount );
+    for( int i=0; i<amount; i++ ){
+      list[i]=( double.parse( parts[i+start] ) );
+    }
+    return list;
+  }
+  
+  static LDrawPrimitive parseFromId( int id, List<String> parts, LDrawLoader loader ){
+    switch( id ){
+      case 1: return new LDrawFile.parse(parts, loader);
+      case 2: return new LDrawLine.parse(parts);
+      case 3: return new LDrawTriangle.parse(parts);
+      case 4: return new LDrawQuad.parse(parts);
+      case 5: return new LDrawOptional.parse(parts);
+      default: return new LDrawOptional.parse(parts); //TODO: throw Exception("Shit");
+    }
+  }
 }
