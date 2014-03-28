@@ -233,6 +233,7 @@ class LDrawFileContent extends LDrawPrimitive{
   List<LDrawPrimitive> current = null;
   Map<String,LDrawFileContent> files = new Map<String,LDrawFileContent>();
 
+  @override
   void to_mesh( MeshModel model, LDrawContext context ){
     LDrawContext new_context = new LDrawContext.subfile( context, color_index );
     primitives.forEach( (x) => x.to_mesh( model, new_context ) );
@@ -347,18 +348,6 @@ class LDrawFileContent extends LDrawPrimitive{
     return out;
   }
 }
-Float32List combine(Float32List arr1, Float32List arr2){
-  Float32List arr = new Float32List( arr1.length + arr2.length );
-  for(int i=0; i<arr1.length; i++)
-    arr[i] = arr1[i];
-  for(int i=0; i<arr2.length; i++)
-    arr[i+arr1.length] = arr2[i];
-  return arr;
-}
-
-String floatlist2string( Float32List list ){
-  return list.map( (f) => f.toString() ).join(' ');
-}
 
 class LDrawFile extends LDrawPrimitive{
   String name;
@@ -368,6 +357,7 @@ class LDrawFile extends LDrawPrimitive{
   
   LDrawFile( this.name );
 
+  @override
   void to_mesh( MeshModel model, LDrawContext context ){
     Matrix4 new_pos = context.offset.clone().multiply(pos);
     content.to_mesh( model, new LDrawContext.subpart( context.index, context.lookUp(color), new_pos ) );
@@ -392,7 +382,8 @@ class LDrawFile extends LDrawPrimitive{
     double i = double.parse( parts[12] );
     pos = new Matrix4( a, d, g, 0.0, b, e, h, 0.0, c, f, i, 0.0, x, y, z, 1.0 );
   }
-  
+
+  @override
   String asLDraw(){
     String pos_str = "${pos.row0[3]} ${pos.row1[3]} ${pos.row2[3]}";
     pos_str += " ${pos.row0[0]} ${pos.row0[1]} ${pos.row0[2]}";
@@ -406,13 +397,17 @@ class LDrawLine extends LDrawPrimitive{
   LDrawColorId color;
   Float32List vertices;
 
+  @override
   void to_mesh( MeshModel model, LDrawContext context ){
     LDrawColor c = context.lookUp( color );
     model.add_lines( vertices, context.offset, c.er, c.eg, c.eb, c.alpha );
   }
+  
+  @override
   String asLDraw(){
     return "2 $color " + floatlist2string(vertices);
   }
+  
   LDrawLine.parse(List<String> parts){
     assert(parts.length == 7);
     
@@ -425,10 +420,13 @@ class LDrawTriangle extends LDrawPrimitive{
   LDrawColorId color;
   Float32List vertices;
 
+  @override
   void to_mesh( MeshModel model, LDrawContext context ){
     LDrawColor c = context.lookUp( color );
     model.add_triangle( vertices, context.offset, c.r, c.g, c.b, c.alpha );
   }
+
+  @override
   String asLDraw(){
     return "3 $color " + floatlist2string(vertices);
   }
@@ -445,6 +443,7 @@ class LDrawQuad extends LDrawPrimitive{
   LDrawColorId color;
   Float32List vertices;
 
+  @override
   void to_mesh( MeshModel model, LDrawContext context ){
     LDrawColor c = context.lookUp( color );
     model.add_triangle( vertices.sublist(0, 9), context.offset, c.r, c.g, c.b, c.alpha );
@@ -453,9 +452,12 @@ class LDrawQuad extends LDrawPrimitive{
       arr2[i] = vertices[i];
     model.add_triangle( arr2, context.offset, c.r, c.g, c.b, c.alpha );
   }
+
+  @override
   String asLDraw(){
     return "4 $color " + floatlist2string(vertices);
   }
+  
   LDrawQuad.parse(List<String> parts){
     assert(parts.length >= 13);
     
@@ -470,7 +472,8 @@ class LDrawOptional extends LDrawPrimitive{
   double x2 = 0.0, y2 = 0.0, z2 = 0.0;
   double x3 = 0.0, y3 = 0.0, z3 = 0.0;
   double x4 = 0.0, y4 = 0.0, z4 = 0.0;
-  
+
+  @override
   String asLDraw(){
     return "5 $color $x1 $y1 $z1 $x2 $y2 $z2 $x3 $y3 $z3 $x4 $y4 $z4";
   }
@@ -497,6 +500,11 @@ abstract class LDrawPrimitive{
   void to_mesh( MeshModel model, LDrawContext context ){ }
   String asLDraw();
 
+
+  String floatlist2string( Float32List list ){
+    return list.map( (f) => f.toString() ).join(' ');
+  }
+  
   Float32List from_string_list( List<String> parts, int start, int amount ){
     Float32List list = new Float32List( amount );
     for( int i=0; i<amount; i++ ){
