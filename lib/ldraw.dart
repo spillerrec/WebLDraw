@@ -1,44 +1,44 @@
 part of ldraw;
 
 class LDrawColor{
-  int r, g, b; //Main color
-  int er, eg, eb; //Edge color
-  int alpha;
-  //Not supported:
-  //Luminance
-  //Materials
-  
-  LDrawColor( this.r, this.g, this.b, this.er, this.eg, this.eb, [this.alpha=255] );
+	int r, g, b; //Main color
+	int er, eg, eb; //Edge color
+	int alpha;
+	//Not supported:
+	//Luminance
+	//Materials
+
+	LDrawColor( this.r, this.g, this.b, this.er, this.eg, this.eb, [this.alpha=255] );
 }
 class LDrawColorIndex{
-  //TODO: this makes new colors work for the entire file, we only want it for the remaining of the file!
-  Map<int,LDrawColor> colors;
-  LDrawColorIndex(){
-    colors = new Map<int,LDrawColor>();
-  }
-  LDrawColorIndex.from( this.colors );
-  
-  LDrawColorIndex combine( LDrawColorIndex parent ){
-    if( colors.length > 0 ){
-      LDrawColorIndex combined = new LDrawColorIndex();
-      combined.colors.addAll(parent.colors);
-      combined.colors.addAll(colors);
-      return combined;
-    }
-    else
-      return new LDrawColorIndex.from( parent.colors );
-  }
-  
-  LDrawColor lookUp( int index ){
-    if( colors.containsKey( index ) )
-      return colors[index];
-    else
-      return colors[0]; //Note: black must be defined
-      //TODO: throw exception instead?
-  }
-  
-  LDrawColorIndex.officialColors(){
-    colors = {
+	//TODO: this makes new colors work for the entire file, we only want it for the remaining of the file!
+	Map<int,LDrawColor> colors;
+	LDrawColorIndex(){
+		colors = new Map<int,LDrawColor>();
+	}
+	LDrawColorIndex.from( this.colors );
+
+	LDrawColorIndex combine( LDrawColorIndex parent ){
+		if( colors.length > 0 ){
+			LDrawColorIndex combined = new LDrawColorIndex();
+			combined.colors.addAll(parent.colors);
+			combined.colors.addAll(colors);
+			return combined;
+		}
+		else
+			return new LDrawColorIndex.from( parent.colors );
+	}
+
+	LDrawColor lookUp( int index ){
+		if( colors.containsKey( index ) )
+			return colors[index];
+		else
+			return colors[0]; //Note: black must be defined
+		//TODO: throw exception instead?
+	}
+
+	LDrawColorIndex.officialColors(){
+	colors = {
 0: new LDrawColor( 5, 19, 29, 89, 89, 89, 255 ),
 1: new LDrawColor( 0, 85, 191, 51, 51, 51, 255 ),
 2: new LDrawColor( 37, 122, 62, 51, 51, 51, 255 ),
@@ -185,342 +185,343 @@ class LDrawColorIndex{
 493: new LDrawColor( 101, 103, 97, 89, 89, 89, 255 ),
 494: new LDrawColor( 208, 208, 208, 51, 51, 51, 255 ),
 495: new LDrawColor( 174, 122, 89, 51, 51, 51, 255 ),
-      };
-  }
+		};
+	}
 }
 
 class LDrawColorId{
-  int code = 16;
-  LDrawColorId();
-  LDrawColorId.parse( String part ){
-    code = int.parse( part );
-    //TODO: support rgb definition
-  }
-  String toString(){
-    return code.toString();
-  }
+	int code = 16;
+	LDrawColorId();
+	LDrawColorId.parse( String part ){
+		code = int.parse( part );
+		//TODO: support rgb definition
+	}
+	
+	@override
+	String toString(){
+		return code.toString();
+	}
 }
 
 class LDrawContext{
-  LDrawColorIndex index;
-  Matrix4 offset;
-  LDrawColor color;
-  
-  LDrawContext(){
-    offset = new Matrix4.identity();
-    index = new LDrawColorIndex.officialColors();
-    color = index.lookUp(0);
-  }
-  LDrawContext.subpart( this.index, this.color, this.offset ){
-  }
-  LDrawContext.subfile( LDrawContext context, LDrawColorIndex index ){
-    offset = context.offset;
-    color = context.color;
-    this.index = index.combine( context.index );
-  }
-  
-  LDrawColor lookUp( LDrawColorId color_id ){
-    if( color_id.code == 16 || color_id.code == 24 )
-      return color;
-    else
-      return index.lookUp( color_id.code );
-  }
+	LDrawColorIndex index;
+	Matrix4 offset;
+	LDrawColor color;
+
+	LDrawContext(){
+		offset = new Matrix4.identity();
+		index = new LDrawColorIndex.officialColors();
+		color = index.lookUp(0);
+	}
+	LDrawContext.subpart( this.index, this.color, this.offset ){ }
+	LDrawContext.subfile( LDrawContext context, LDrawColorIndex index ){
+		offset = context.offset;
+		color = context.color;
+		this.index = index.combine( context.index );
+	}
+
+	LDrawColor lookUp( LDrawColorId color_id ){
+		if( color_id.code == 16 || color_id.code == 24 )
+			return color;
+		else
+			return index.lookUp( color_id.code );
+	}
 }
 
 class LDrawFileContent extends LDrawPrimitive{
-  LDrawColorIndex color_index = new LDrawColorIndex();
-  List<LDrawPrimitive> primitives = new List<LDrawPrimitive>();
-  List<LDrawPrimitive> current = null;
-  Map<String,LDrawFileContent> files = new Map<String,LDrawFileContent>();
+	LDrawColorIndex color_index = new LDrawColorIndex();
+	List<LDrawPrimitive> primitives = new List<LDrawPrimitive>();
+	List<LDrawPrimitive> current = null;
+	Map<String,LDrawFileContent> files = new Map<String,LDrawFileContent>();
 
-  @override
-  void to_mesh( MeshModel model, LDrawContext context ){
-    LDrawContext new_context = new LDrawContext.subfile( context, color_index );
-    primitives.forEach( (x) => x.to_mesh( model, new_context ) );
-  }
-  void init( String content, LDrawLoader loader ){
-    current = primitives;
-    try{
-    List<String> lines = content.split("\n");
-    lines.removeWhere((test)=>test.isEmpty);
-    lines.forEach((line){
-      List<String> parts = line.trim().split(" ");
-      parts.removeWhere((test)=>test.isEmpty); //Note: could mess up file names if they contain spaces 
-      
-      if( parts.length > 0 ){
-        int type = int.parse( parts.removeAt(0) );
-        if( type == 0 )
-          parse_comment(parts);
-        else{
-          current.add( LDrawPrimitive.parseFromId( type, parts, loader ) );
-        }
-      }
-    });
-    
-    //load all files now
-    load_primitives( loader, new Map<String,LDrawFileContent>() );
-    }
-    catch(object){
-      print(object);
-    }
-  }
-  void load_primitives( LDrawLoader loader, Map<String,LDrawFileContent> parent_files ){
-    Map<String,LDrawFileContent> combined_files = new Map<String,LDrawFileContent>();
-    combined_files.addAll( parent_files );
-    combined_files.addAll( files );
-    primitives.forEach( (primi){
-        if( primi is LDrawFile ){
-          LDrawFile file = primi;
-          file.name = file.name.replaceAll( '\\', '/' );
-          if( combined_files.containsKey(file.name)){
-            file.content = combined_files[file.name];
-            file.content.load_primitives( loader, combined_files );
-          }
-          else
-            loader.load_file( primi );
-        }
-      } );
-  }
-  
-  
-  List<int> colorFromHex( String hex ){
-    if( hex.startsWith( '#' ) )
-      hex = hex.substring( 1 );
-    else if( hex.startsWith( '0x' ) )
-      hex = hex.substring( 2 );
-    //TODO: else exception
-    
-    //TODO: exception if lenght != 6
-    
-    //Parse
-    int r = int.parse( hex.substring(0, 2), radix: 16 ); 
-    int g = int.parse( hex.substring(2, 4), radix: 16 ); 
-    int b = int.parse( hex.substring(4, 6), radix: 16 );
+	@override
+	void to_mesh( MeshModel model, LDrawContext context ){
+		LDrawContext new_context = new LDrawContext.subfile( context, color_index );
+		primitives.forEach( (x) => x.to_mesh( model, new_context ) );
+	}
+	
+	void init( String content, LDrawLoader loader ){
+		current = primitives;
+		try{
+			List<String> lines = content.split("\n");
+			lines.removeWhere((test)=>test.isEmpty);
+			lines.forEach((line){
+					List<String> parts = line.trim().split(" ");
+					parts.removeWhere((test)=>test.isEmpty); //Note: could mess up file names if they contain spaces 
 
-    return [ r, g, b ];
-  }
-  void parse_comment(List<String> parts){
-    if( parts.length > 0 )
-      switch( parts[0] ){
-        case "STEP": break;
-        case "ROTATION": break;
-        case "!COLOUR":
-            //TODO: real implementation instead of this shit
-            int code = int.parse( parts[3] );
-            List<int> main = colorFromHex( parts[5] );
-            List<int> edge = colorFromHex( parts[7] );
-            int alpha = 255;
-            if( parts.length > 9 && parts[8] == "ALPHA" )
-              alpha = int.parse( parts[9] );
-            color_index.colors[code] = new LDrawColor( main[0], main[1], main[2], edge[0], edge[1], edge[2], alpha );
-          break;
-        case "FILE":
-            //Don't do anything for first file
-            if( primitives.length == 0 )
-              break;
-            
-            //Create new Content and switch to that 
-            String name = parts.sublist( 1 ).join( " " );
-            LDrawFileContent content = new LDrawFileContent();
-            files[name] = content;
-            current = content.primitives;
-          break;
-        //default: print("comment");
-      }
-  }
-  
+					if( parts.length > 0 ){
+						int type = int.parse( parts.removeAt(0) );
+						if( type == 0 )
+							parse_comment(parts);
+						else
+							current.add( LDrawPrimitive.parseFromId( type, parts, loader ) );
+					}
+				});
 
-  @override
-  String asLDraw() {
-    String out = "";
-    if(files.length > 0)
-      out += "0 FILE unknown\n";
-    
-    primitives.forEach( (f) => out += f.asLDraw() + "\n" );
-    
-    if(files.length > 0){
-      files.forEach( (name,content){
-        out += "0 FILE ${name}\n";
-        out += content.asLDraw();
-      });
-    }
-    
-    return out;
-  }
+			//load all files now
+			load_primitives( loader, new Map<String,LDrawFileContent>() );
+		}
+		catch(object){
+			print(object);
+		}
+	}
+	void load_primitives( LDrawLoader loader, Map<String,LDrawFileContent> parent_files ){
+		Map<String,LDrawFileContent> combined_files = new Map<String,LDrawFileContent>();
+		combined_files.addAll( parent_files );
+		combined_files.addAll( files );
+		primitives.forEach( (primi){
+				if( primi is LDrawFile ){
+				LDrawFile file = primi;
+					file.name = file.name.replaceAll( '\\', '/' );
+					if( combined_files.containsKey(file.name)){
+						file.content = combined_files[file.name];
+						file.content.load_primitives( loader, combined_files );
+					}
+					else
+						loader.load_file( primi );
+				}
+			} );
+	}
+
+
+	List<int> colorFromHex( String hex ){
+		if( hex.startsWith( '#' ) )
+			hex = hex.substring( 1 );
+		else if( hex.startsWith( '0x' ) )
+			hex = hex.substring( 2 );
+		//TODO: else exception
+
+		//TODO: exception if lenght != 6
+
+		//Parse
+		int r = int.parse( hex.substring(0, 2), radix: 16 ); 
+		int g = int.parse( hex.substring(2, 4), radix: 16 ); 
+		int b = int.parse( hex.substring(4, 6), radix: 16 );
+
+		return [ r, g, b ];
+	}
+	
+	void parse_comment(List<String> parts){
+		if( parts.length > 0 )
+		switch( parts[0] ){
+			case "STEP": break;
+			case "ROTATION": break;
+			case "!COLOUR":
+					//TODO: real implementation instead of this shit
+					int code = int.parse( parts[3] );
+					List<int> main = colorFromHex( parts[5] );
+					List<int> edge = colorFromHex( parts[7] );
+					int alpha = 255;
+					if( parts.length > 9 && parts[8] == "ALPHA" )
+					alpha = int.parse( parts[9] );
+					color_index.colors[code] = new LDrawColor( main[0], main[1], main[2], edge[0], edge[1], edge[2], alpha );
+				break;
+			case "FILE":
+					//Don't do anything for first file
+					if( primitives.length == 0 )
+						break;
+
+					//Create new Content and switch to that 
+					String name = parts.sublist( 1 ).join( " " );
+					LDrawFileContent content = new LDrawFileContent();
+					files[name] = content;
+					current = content.primitives;
+				break;
+			//default: print("comment");
+		}
+	}
+
+
+	@override
+	String asLDraw() {
+		String out = "";
+		if(files.length > 0)
+			out += "0 FILE unknown\n";
+
+		primitives.forEach( (f) => out += f.asLDraw() + "\n" );
+
+		if(files.length > 0){
+			files.forEach( (name,content){
+					out += "0 FILE ${name}\n";
+					out += content.asLDraw();
+				});
+		}
+
+		return out;
+	}
 }
 
 class LDrawFile extends LDrawPrimitive{
-  String name;
-  LDrawColorId color = new LDrawColorId();
-  Matrix4 pos = new Matrix4.identity();
-  LDrawFileContent content;
-  
-  LDrawFile( this.name );
+	String name;
+	LDrawColorId color = new LDrawColorId();
+	Matrix4 pos = new Matrix4.identity();
+	LDrawFileContent content;
 
-  @override
-  void to_mesh( MeshModel model, LDrawContext context ){
-    Matrix4 new_pos = context.offset.clone().multiply(pos);
-    content.to_mesh( model, new LDrawContext.subpart( context.index, context.lookUp(color), new_pos ) );
-  }
+	LDrawFile( this.name );
 
-  LDrawFile.parse( List<String> parts, LDrawLoader loader ){
-    assert(parts.length >= 14);
+	@override
+	void to_mesh( MeshModel model, LDrawContext context ){
+		Matrix4 new_pos = context.offset.clone().multiply(pos);
+		content.to_mesh( model, new LDrawContext.subpart( context.index, context.lookUp(color), new_pos ) );
+	}
 
-    name = parts.sublist(13).join(" ").trim();
-    color = new LDrawColorId.parse( parts[0] );
-    double x = double.parse( parts[1] );
-    double y = double.parse( parts[2] );
-    double z = double.parse( parts[3] );
-    double a = double.parse( parts[4] );
-    double b = double.parse( parts[5] );
-    double c = double.parse( parts[6] );
-    double d = double.parse( parts[7] );
-    double e = double.parse( parts[8] );
-    double f = double.parse( parts[9] );
-    double g = double.parse( parts[10] );
-    double h = double.parse( parts[11] );
-    double i = double.parse( parts[12] );
-    pos = new Matrix4( a, d, g, 0.0, b, e, h, 0.0, c, f, i, 0.0, x, y, z, 1.0 );
-  }
+	LDrawFile.parse( List<String> parts, LDrawLoader loader ){
+		assert(parts.length >= 14);
 
-  @override
-  String asLDraw(){
-    String pos_str = "${pos.row0[3]} ${pos.row1[3]} ${pos.row2[3]}";
-    pos_str += " ${pos.row0[0]} ${pos.row0[1]} ${pos.row0[2]}";
-    pos_str += " ${pos.row1[0]} ${pos.row1[1]} ${pos.row1[2]}";
-    pos_str += " ${pos.row2[0]} ${pos.row2[1]} ${pos.row2[2]}";
-    return "1 $color $pos_str $name";
-  }
+		name = parts.sublist(13).join(" ").trim();
+		color = new LDrawColorId.parse( parts[0] );
+		double x = double.parse( parts[1] );
+		double y = double.parse( parts[2] );
+		double z = double.parse( parts[3] );
+		double a = double.parse( parts[4] );
+		double b = double.parse( parts[5] );
+		double c = double.parse( parts[6] );
+		double d = double.parse( parts[7] );
+		double e = double.parse( parts[8] );
+		double f = double.parse( parts[9] );
+		double g = double.parse( parts[10] );
+		double h = double.parse( parts[11] );
+		double i = double.parse( parts[12] );
+		pos = new Matrix4( a, d, g, 0.0, b, e, h, 0.0, c, f, i, 0.0, x, y, z, 1.0 );
+	}
+
+	@override
+	String asLDraw(){
+		String pos_str = "${pos.row0[3]} ${pos.row1[3]} ${pos.row2[3]}";
+		pos_str += " ${pos.row0[0]} ${pos.row0[1]} ${pos.row0[2]}";
+		pos_str += " ${pos.row1[0]} ${pos.row1[1]} ${pos.row1[2]}";
+		pos_str += " ${pos.row2[0]} ${pos.row2[1]} ${pos.row2[2]}";
+		return "1 $color $pos_str $name";
+	}
 }
 
 class LDrawLine extends LDrawPrimitive{
-  LDrawColorId color;
-  Float32List vertices;
+	LDrawColorId color;
+	Float32List vertices;
 
-  @override
-  void to_mesh( MeshModel model, LDrawContext context ){
-    LDrawColor c = context.lookUp( color );
-    model.add_lines( vertices, context.offset, c.er, c.eg, c.eb, c.alpha );
-  }
-  
-  @override
-  String asLDraw(){
-    return "2 $color " + floatlist2string(vertices);
-  }
-  
-  LDrawLine.parse(List<String> parts){
-    assert(parts.length == 7);
-    
-    color = new LDrawColorId.parse( parts[0] );
-    vertices = from_string_list( parts, 1, 6 );
-  }
+	@override
+	void to_mesh( MeshModel model, LDrawContext context ){
+		LDrawColor c = context.lookUp( color );
+		model.add_lines( vertices, context.offset, c.er, c.eg, c.eb, c.alpha );
+	}
+
+	@override
+	String asLDraw(){
+		return "2 $color " + floatlist2string(vertices);
+	}
+
+	LDrawLine.parse(List<String> parts){
+		assert(parts.length == 7);
+
+		color = new LDrawColorId.parse( parts[0] );
+		vertices = from_string_list( parts, 1, 6 );
+	}
 }
 
 class LDrawTriangle extends LDrawPrimitive{
-  LDrawColorId color;
-  Float32List vertices;
+	LDrawColorId color;
+	Float32List vertices;
 
-  @override
-  void to_mesh( MeshModel model, LDrawContext context ){
-    LDrawColor c = context.lookUp( color );
-    model.add_triangle( vertices, context.offset, c.r, c.g, c.b, c.alpha );
-  }
+	@override
+	void to_mesh( MeshModel model, LDrawContext context ){
+		LDrawColor c = context.lookUp( color );
+		model.add_triangle( vertices, context.offset, c.r, c.g, c.b, c.alpha );
+	}
 
-  @override
-  String asLDraw(){
-    return "3 $color " + floatlist2string(vertices);
-  }
+	@override
+	String asLDraw(){
+		return "3 $color " + floatlist2string(vertices);
+	}
 
-  LDrawTriangle.parse(List<String> parts){
-    assert(parts.length == 10);
-    
-    color = new LDrawColorId.parse( parts[0] );
-    vertices = from_string_list( parts, 1, 9 );
-  }
+	LDrawTriangle.parse(List<String> parts){
+		assert(parts.length == 10);
+
+		color = new LDrawColorId.parse( parts[0] );
+		vertices = from_string_list( parts, 1, 9 );
+	}
 }
 
 class LDrawQuad extends LDrawPrimitive{
-  LDrawColorId color;
-  Float32List vertices;
+	LDrawColorId color;
+	Float32List vertices;
 
-  @override
-  void to_mesh( MeshModel model, LDrawContext context ){
-    LDrawColor c = context.lookUp( color );
-    model.add_triangle( vertices.sublist(0, 9), context.offset, c.r, c.g, c.b, c.alpha );
-    Float32List arr2 = vertices.sublist(3, 12);
-    for(int i=0; i<3; i++)
-      arr2[i] = vertices[i];
-    model.add_triangle( arr2, context.offset, c.r, c.g, c.b, c.alpha );
-  }
+	@override
+	void to_mesh( MeshModel model, LDrawContext context ){
+	LDrawColor c = context.lookUp( color );
+	model.add_triangle( vertices.sublist(0, 9), context.offset, c.r, c.g, c.b, c.alpha );
+	Float32List arr2 = vertices.sublist(3, 12);
+	for(int i=0; i<3; i++)
+		arr2[i] = vertices[i];
+	model.add_triangle( arr2, context.offset, c.r, c.g, c.b, c.alpha );
+	}
 
-  @override
-  String asLDraw(){
-    return "4 $color " + floatlist2string(vertices);
-  }
-  
-  LDrawQuad.parse(List<String> parts){
-    assert(parts.length >= 13);
-    
-    color = new LDrawColorId.parse( parts[0] );
-    vertices = from_string_list( parts, 1, 12 );
-  }
+	@override
+	String asLDraw(){
+		return "4 $color " + floatlist2string(vertices);
+	}
+
+	LDrawQuad.parse(List<String> parts){
+		assert(parts.length >= 13);
+
+		color = new LDrawColorId.parse( parts[0] );
+		vertices = from_string_list( parts, 1, 12 );
+	}
 }
 
 class LDrawOptional extends LDrawPrimitive{
-  LDrawColorId color;
-  double x1 = 0.0, y1 = 0.0, z1 = 0.0;
-  double x2 = 0.0, y2 = 0.0, z2 = 0.0;
-  double x3 = 0.0, y3 = 0.0, z3 = 0.0;
-  double x4 = 0.0, y4 = 0.0, z4 = 0.0;
+	LDrawColorId color;
+	double x1 = 0.0, y1 = 0.0, z1 = 0.0;
+	double x2 = 0.0, y2 = 0.0, z2 = 0.0;
+	double x3 = 0.0, y3 = 0.0, z3 = 0.0;
+	double x4 = 0.0, y4 = 0.0, z4 = 0.0;
 
-  @override
-  String asLDraw(){
-    return "5 $color $x1 $y1 $z1 $x2 $y2 $z2 $x3 $y3 $z3 $x4 $y4 $z4";
-  }
+	@override
+	String asLDraw(){
+		return "5 $color $x1 $y1 $z1 $x2 $y2 $z2 $x3 $y3 $z3 $x4 $y4 $z4";
+	}
 
-  LDrawOptional.parse(List<String> parts){
-    assert(parts.length == 13);
-    color = new LDrawColorId.parse( parts[0] );
-    x1 = double.parse( parts[1] );
-    y1 = double.parse( parts[2] );
-    z1 = double.parse( parts[3] );
-    x2 = double.parse( parts[4] );
-    y2 = double.parse( parts[5] );
-    z2 = double.parse( parts[6] );
-    x3 = double.parse( parts[7] );
-    y3 = double.parse( parts[8] );
-    z3 = double.parse( parts[9] );
-    x4 = double.parse( parts[10] );
-    y4 = double.parse( parts[11] );
-    z4 = double.parse( parts[12] );
-  }
+	LDrawOptional.parse(List<String> parts){
+		assert(parts.length == 13);
+		color = new LDrawColorId.parse( parts[0] );
+		x1 = double.parse( parts[1] );
+		y1 = double.parse( parts[2] );
+		z1 = double.parse( parts[3] );
+		x2 = double.parse( parts[4] );
+		y2 = double.parse( parts[5] );
+		z2 = double.parse( parts[6] );
+		x3 = double.parse( parts[7] );
+		y3 = double.parse( parts[8] );
+		z3 = double.parse( parts[9] );
+		x4 = double.parse( parts[10] );
+		y4 = double.parse( parts[11] );
+		z4 = double.parse( parts[12] );
+	}
 }
 
 abstract class LDrawPrimitive{
-  void to_mesh( MeshModel model, LDrawContext context ){ }
-  String asLDraw();
+	void to_mesh( MeshModel model, LDrawContext context ){ }
+	String asLDraw();
 
 
-  String floatlist2string( Float32List list ){
-    return list.map( (f) => f.toString() ).join(' ');
-  }
-  
-  Float32List from_string_list( List<String> parts, int start, int amount ){
-    Float32List list = new Float32List( amount );
-    for( int i=0; i<amount; i++ ){
-      list[i]=( double.parse( parts[i+start] ) );
-    }
-    return list;
-  }
-  
-  static LDrawPrimitive parseFromId( int id, List<String> parts, LDrawLoader loader ){
-    switch( id ){
-      case 1: return new LDrawFile.parse(parts, loader);
-      case 2: return new LDrawLine.parse(parts);
-      case 3: return new LDrawTriangle.parse(parts);
-      case 4: return new LDrawQuad.parse(parts);
-      case 5: return new LDrawOptional.parse(parts);
-      default: return new LDrawOptional.parse(parts); //TODO: throw Exception("Shit");
-    }
-  }
+	String floatlist2string( Float32List list ){
+		return list.map( (f) => f.toString() ).join(' ');
+	}
+
+	Float32List from_string_list( List<String> parts, int start, int amount ){
+		Float32List list = new Float32List( amount );
+		for( int i=0; i<amount; i++ )
+			list[i]=( double.parse( parts[i+start] ) );
+		return list;
+	}
+
+	static LDrawPrimitive parseFromId( int id, List<String> parts, LDrawLoader loader ){
+		switch( id ){
+			case 1: return new LDrawFile.parse(parts, loader);
+			case 2: return new LDrawLine.parse(parts);
+			case 3: return new LDrawTriangle.parse(parts);
+			case 4: return new LDrawQuad.parse(parts);
+			case 5: return new LDrawOptional.parse(parts);
+			default: return new LDrawOptional.parse(parts); //TODO: throw Exception("Shit");
+		}
+	}
 }
