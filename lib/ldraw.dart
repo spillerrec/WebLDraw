@@ -332,14 +332,14 @@ class LDrawFileContent extends LDrawPrimitive{
   String asLDraw() {
     String out = "";
     if(files.length > 0)
-      out += "FILE 0\n";
+      out += "0 FILE unknown\n";
     
     primitives.forEach( (f) => out += f.asLDraw() + "\n" );
     
     if(files.length > 0){
-      files.values.forEach( (f){
-        out += "FILE 0\n";
-        out += f.asLDraw();
+      files.forEach( (name,content){
+        out += "0 FILE ${name}\n";
+        out += content.asLDraw();
       });
     }
     
@@ -393,7 +393,10 @@ class LDrawFile extends LDrawPrimitive{
   }
   
   String asLDraw(){
-    String pos_str = "shit"; //TODO:
+    String pos_str = "${pos.row0[3]} ${pos.row1[3]} ${pos.row2[3]}";
+    pos_str += " ${pos.row0[0]} ${pos.row0[1]} ${pos.row0[2]}";
+    pos_str += " ${pos.row1[0]} ${pos.row1[1]} ${pos.row1[2]}";
+    pos_str += " ${pos.row2[0]} ${pos.row2[1]} ${pos.row2[2]}";
     return "1 $color $pos_str $name";
   }
 }
