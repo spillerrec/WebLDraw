@@ -270,6 +270,7 @@ class LDrawFileContent extends LDrawPrimitive{
     primitives.forEach( (primi){
         if( primi is LDrawFile ){
           LDrawFile file = primi;
+          file.name = file.name.replaceAll( '\\', '/' );
           if( combined_files.containsKey(file.name)){
             file.content = combined_files[file.name];
             file.content.load_primitives( loader, combined_files );
