@@ -2,7 +2,7 @@ part of ldraw;
 
 abstract class LDrawLib{
 	String base_dir = "/assets/webldraw/ldraw/";
-	Future<String> load( String url );
+	Future<List<int>> load( String url );
 }
 
 abstract class Progress{
@@ -80,12 +80,21 @@ class LDrawLoader{
 		String try_load = names.removeAt(0);
 		lib.load( try_load )
 			.then( (content){
+		      if( name.substring( name.lastIndexOf('.') ) == '.lzma' ){
+		        var output = new LZMA.OutStream();
+		        LZMA.decompress( new LZMA.InStream(content), output );
+		        content = UTF8.decoder.convert(output.data);
+		      }
+		      else
+		        content = UTF8.decoder.convert(content);
+		        
 					cache[name].init( content, this );
 					total_file_size += content.length;
 					progress.current++;
 					progress.updated();
 				} )
 			.catchError( (onError){
+		  print(onError);
 					if( names.length > 0 )
 						load_ldraw_list( names, name );
 					else{

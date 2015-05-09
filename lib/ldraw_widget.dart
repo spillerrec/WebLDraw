@@ -1,7 +1,12 @@
 part of webldraw;
 
 class LDrawHttpLib extends LDrawLib{
-	Future<String> load( String url ) => HttpRequest.getString( url );
+	Future<List<int>> load( String url ){
+	  return HttpRequest.request( url, responseType: 'arraybuffer' )
+	      .then( (request){
+	       return new Uint8List.view( request.response );
+	      } );
+	}
 }
 
 class LDrawWidget extends Progress{

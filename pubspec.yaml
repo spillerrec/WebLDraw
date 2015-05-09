@@ -5,4 +5,5 @@ description: WebGL-based LDraw viewer
 homepage: https://github.com/spillerrec/WebLDraw/
 dependencies:
   browser: any
+  lzma: any
   vector_math: any

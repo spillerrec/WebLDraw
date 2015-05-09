@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'dart:async';
+import 'dart:convert';
+import 'package:lzma/lzma.dart' as LZMA;
 
 import 'package:webldraw/ldrawlib.dart';
 
@@ -9,7 +11,7 @@ import 'package:webldraw/ldrawlib.dart';
  */
 
 class LDrawFileLib extends LDrawLib{
-	Future<String> load( String url ) => new File( url ).readAsString();
+	Future<List<int>> load( String url ) => new File( url ).readAsBytes();
 }
 
 LDrawLoader loader;
@@ -35,9 +37,17 @@ class Combiner extends Progress{
 			loader.file.content.files.addAll( LDrawLoader.cache );
 
 			//Write to file
-			var output = new File('$name.full.mpd').openWrite();
-			output.write( loader.file.content.asLDraw() );
-			output.close();
+      var output = new File('$name.full.mpd.lzma');
+      //var output = new File('$name.full.mpd').openWrite();
+      //output.write( loader.file.content.asLDraw() );
+      //output.close();
+			
+			var lzmaOutput = new LZMA.OutStream();
+			LZMA.compress(
+			    new LZMA.InStream(UTF8.encoder.convert(loader.file.content.asLDraw()))
+			, lzmaOutput);
+			
+			output.writeAsBytesSync(lzmaOutput.data);
 		}
 	}
 }
