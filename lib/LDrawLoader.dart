@@ -81,12 +81,10 @@ class LDrawLoader{
 		lib.load( try_load )
 			.then( (content){
 		      if( name.substring( name.lastIndexOf('.') ) == '.lzma' ){
-		        var output = new LZMA.OutStream();
-		        LZMA.decompress( new LZMA.InStream(content), output );
-		        content = UTF8.decoder.convert(output.data);
+		        content = utf8.decoder.convert(lzma.decode(content));
 		      }
 		      else
-		        content = UTF8.decoder.convert(content);
+		        content = utf8.decoder.convert(content);
 		        
 					cache[name].init( content, this );
 					total_file_size += content.length;
